@@ -5,6 +5,8 @@ import { salir, usuarioActivo } from '../auth/sesion';
 import Acceso from './acceso/Acceso';
 import Anotar from './anotar/Anotar';
 import Clientes from './clientes/Clientes';
+import Lotes from './lotes/Lotes';
+import Cierre from './cierre/Cierre';
 import Navegacion, { type Pantalla } from './Navegacion';
 
 function fechaLarga(): string {
@@ -48,14 +50,10 @@ export default function App() {
       <main className="pantalla">
         {pantalla === 'anotar' && <Anotar usuario={usuario} fraseInicial={frase} />}
         {pantalla === 'clientes' && <Clientes usuario={usuario} anotarCon={anotarCon} />}
-        {(pantalla === 'lotes' || pantalla === 'cierre') && <PantallaPendiente pantalla={pantalla} anotarCon={anotarCon} usuario={usuario} />}
+        {pantalla === 'lotes' && <Lotes usuario={usuario} anotarCon={anotarCon} />}
+        {pantalla === 'cierre' && <Cierre />}
       </main>
       <Navegacion actual={pantalla} ir={(p) => { setFrase(''); setPantalla(p); }} />
     </div>
   );
-}
-
-// Se reemplaza por las pantallas reales en las tareas siguientes.
-function PantallaPendiente(_: { pantalla: Pantalla; anotarCon: (t: string) => void; usuario: Usuario }) {
-  return null;
 }
