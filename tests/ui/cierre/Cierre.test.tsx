@@ -24,8 +24,12 @@ beforeEach(async () => {
 
 it('resume el día', async () => {
   render(<Cierre />);
-  expect(await screen.findByText('$122.000')).toBeInTheDocument();
+  // Marta fió 90.000 y abonó 100.000 (cubre su fiado); Pedro fió 32.000 y no ha pagado.
+  expect(await screen.findByText('Quedó debiendo hoy')).toBeInTheDocument();
+  expect(screen.getByLabelText('Quedó debiendo hoy')).toHaveTextContent('$32.000');
   expect(screen.getByText('$100.000')).toBeInTheDocument();
+  expect(screen.getByText('Pagado')).toBeInTheDocument();
+  expect(screen.getByText('Debe $32.000')).toBeInTheDocument();
   expect(screen.getByText('Doña Marta · 2 canast. mango criollo')).toBeInTheDocument();
   const fila = screen.getByRole('row', { name: /mango criollo/ });
   expect(within(fila).getAllByRole('cell').map((c) => c.textContent)).toEqual(['mango criollo', '50', '45', '0', '5']);

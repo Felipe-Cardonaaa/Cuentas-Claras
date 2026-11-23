@@ -24,8 +24,8 @@ it('resume fiados, abonos y canastillas del día', () => {
   expect(c.totalFiado).toBe(122000);
   expect(c.abonos).toBe(100000);
   expect(c.fiados).toEqual([
-    { clienteId: 'm', descripcion: '2 canast. mango criollo', total: 90000 },
-    { clienteId: 'pe', descripcion: '8 kg mandarina', total: 32000 },
+    { clienteId: 'm', descripcion: '2 canast. mango criollo', total: 90000, pendiente: 0 },
+    { clienteId: 'pe', descripcion: '8 kg mandarina', total: 32000, pendiente: 32000 },
   ]);
   expect(c.productos.find((p) => p.productoId === 'mango')).toEqual(
     { productoId: 'mango', nombre: 'mango criollo', entraron: 50, vendidas: 45, vaciadas: 0, quedan: 5 });
@@ -50,4 +50,18 @@ it('muestra productos vendidos hoy aunque no tengan entrada anotada', () => {
   expect(resumenDia('2026-11-17', d).productos).toEqual([
     { productoId: 'cri', nombre: 'criollo', entraron: 0, vendidas: 3, vaciadas: 0, quedan: null },
   ]);
+});
+
+it('un fiado de hoy que ya se pagó sale como pagado y no cuenta como pendiente', () => {
+  const d = datosVacios();
+  d.clientes.push(cliente('o', 'Orlando', 'orlando'), cliente('g', 'Gonzalo', 'gonzalo'));
+  d.productos.push(producto('cri', 'criollo'));
+  d.ventas.push(
+    venta({ clienteId: 'o', productoId: 'cri', cantidad: 3, precioUnitario: 60000, estado: 'debe', creadoEn: '2026-11-17T14:00:00Z' }),
+    venta({ clienteId: 'g', productoId: 'cri', cantidad: 3, precioUnitario: 60000, estado: 'debe', creadoEn: '2026-11-17T14:10:00Z' }),
+  );
+  d.abonos.push(abono('o', 180000, '2026-11-17T16:00:00Z'), abono('g', 100000, '2026-11-17T16:00:00Z'));
+  const c = resumenDia('2026-11-17', d);
+  expect(c.fiados.map((f) => [f.clienteId, f.total, f.pendiente])).toEqual([['o', 180000, 0], ['g', 180000, 80000]]);
+  expect(c.totalPendiente).toBe(80000);
 });

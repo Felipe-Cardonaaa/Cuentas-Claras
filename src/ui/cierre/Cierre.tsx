@@ -17,16 +17,23 @@ export default function Cierre() {
       <input id="fecha-cierre" type="date" value={fecha} onChange={(e) => e.target.value && setFecha(e.target.value)} />
 
       <div className="resumen">
-        <div className="cifra deuda"><span>Fiado hoy</span><span>{formatoCOP(c.totalFiado)}</span></div>
+        <div className="cifra deuda" aria-label="Quedó debiendo hoy"><span>Quedó debiendo hoy</span><span>{formatoCOP(c.totalPendiente)}</span>
+          {c.totalFiado !== c.totalPendiente && <span className="suave" style={{ fontSize: 13, fontWeight: 400 }}>de {formatoCOP(c.totalFiado)} fiados hoy</span>}
+        </div>
         <div className="cifra pagado"><span>Abonos hoy</span><span>{formatoCOP(c.abonos)}</span></div>
       </div>
 
       <section className="tarjeta" aria-label="Fiados del día">
         <span className="negrita">Fiados de hoy</span>
         {c.fiados.length === 0 ? <span className="suave">No hubo fiados.</span> : c.fiados.map((f, i) => (
-          <div key={i} className="linea-arriba">
-            <span>{cliente(f.clienteId)} · {f.descripcion}</span>
-            <span className="negrita">{formatoCOP(f.total)}</span>
+          <div key={i} className="formulario" style={{ gap: 2 }}>
+            <div className="linea-arriba">
+              <span>{cliente(f.clienteId)} · {f.descripcion}</span>
+              <span className="negrita">{formatoCOP(f.total)}</span>
+            </div>
+            <div className="linea-abajo" style={{ justifyContent: 'flex-end' }}>
+              {f.pendiente === 0 ? <span className="texto-pagado">Pagado</span> : <span className="texto-deuda">Debe {formatoCOP(f.pendiente)}</span>}
+            </div>
           </div>
         ))}
       </section>
