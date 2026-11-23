@@ -58,7 +58,7 @@ export default function Historial({ tabla, registro, titulo, usuario, nombres, a
       if (!(n > 0)) return setError(`${c.etiqueta}: escribe un número mayor que cero`);
       if (n !== registro[c.clave]) cambios[c.clave] = n;
     }
-    if (Object.keys(cambios).length > 0) await editar(tabla, registro.id, cambios, usuario.id);
+    if (Object.keys(cambios).length > 0) await editar(tabla, registro.id, cambios as never, usuario.id);
     alCerrar();
   }
 

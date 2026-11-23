@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Datos, Usuario } from '../../dominio/tipos';
+import type { Datos, Lote, Usuario } from '../../dominio/tipos';
 import { estadoLotes, type EstadoLote } from '../../dominio/lotes';
 import { formatoCOP, horaBogota, parsearPrecio } from '../../dominio/texto';
 import { editar } from '../../datos/repositorio';
@@ -23,7 +23,7 @@ function AgregarCosto({ e, usuario }: { e: EstadoLote; usuario: Usuario }) {
     if (v === null || v <= 0) return setError('No entendí el costo');
     const costoTotal = modo === 'total' ? v : v * e.lote.canastillas;
     const costoDetalle = modo === 'total' ? `${e.lote.canastillas} canast. por ${formatoCOP(v)}` : `${e.lote.canastillas} canast. × ${formatoCOP(v)}`;
-    await editar('lotes', e.lote.id, { costoTotal, costoDetalle }, usuario.id);
+    await editar<Lote>('lotes', e.lote.id, { costoTotal, costoDetalle }, usuario.id);
     setAbierto(false);
   }
   return (
