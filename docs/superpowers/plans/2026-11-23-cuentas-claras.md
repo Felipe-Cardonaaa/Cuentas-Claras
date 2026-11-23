@@ -71,7 +71,7 @@ tests/   (mismo árbol que src, archivos *.test.ts / *.test.tsx)
 
 ---
 
-### Tarea 1: Proyecto base
+### Task 1: Proyecto base
 
 **Archivos:**
 - Crear: `package.json`, `vite.config.ts`, `tsconfig.json`, `index.html`, `src/main.tsx`, `src/ui/App.tsx`, `src/ui/estilos.css`, `tests/setup.ts`, `tests/ui/App.test.tsx`, `.env.example`, `README.md`
@@ -96,7 +96,7 @@ it('muestra el nombre de la app', () => {
 
 ---
 
-### Tarea 2: Tipos y utilidades de texto
+### Task 2: Tipos y utilidades de texto
 
 **Archivos:**
 - Crear: `src/dominio/tipos.ts`, `src/dominio/texto.ts`
@@ -153,7 +153,7 @@ expect(nombrePropio('doña marta ramírez')).toBe('Doña Marta Ramírez');
 
 ---
 
-### Tarea 3: Intérprete de frases
+### Task 3: Intérprete de frases
 
 **Archivos:**
 - Crear: `src/dominio/parser.ts`
@@ -213,7 +213,7 @@ Reglas: se compara en minúsculas, aceptando las palabras con y sin tilde. Los n
 
 ---
 
-### Tarea 4: Coincidencias de nombres
+### Task 4: Coincidencias de nombres
 
 **Archivos:**
 - Crear: `src/dominio/coincidencias.ts`
@@ -251,7 +251,7 @@ expect(buscarCoincidencia('mango', prods).tipo).toBe('parecida');
 
 ---
 
-### Tarea 5: Lotes
+### Task 5: Lotes
 
 **Archivos:**
 - Crear: `src/dominio/lotes.ts`
@@ -283,7 +283,7 @@ Reglas:
 
 ---
 
-### Tarea 6: Fiados
+### Task 6: Fiados
 
 **Archivos:**
 - Crear: `src/dominio/fiados.ts`
@@ -319,7 +319,7 @@ Reglas (spec §7.4):
 
 ---
 
-### Tarea 7: Canastillas prestadas
+### Task 7: Canastillas prestadas
 
 **Archivos:**
 - Crear: `src/dominio/canastillas.ts`
@@ -340,7 +340,7 @@ Reglas: `total = Σ cantidad` de las ventas de canastilla con `prestada: true` �
 
 ---
 
-### Tarea 8: Cierre del día
+### Task 8: Cierre del día
 
 **Archivos:**
 - Crear: `src/dominio/cierre.ts`
@@ -375,7 +375,7 @@ Reglas (spec §7.6):
 
 ---
 
-### Tarea 9: Borrador de confirmación (reglas antes de guardar)
+### Task 9: Borrador de confirmación (reglas antes de guardar)
 
 **Archivos:**
 - Crear: `src/dominio/borrador.ts`
@@ -427,7 +427,7 @@ Avisos (no impiden guardar):
 
 ---
 
-### Tarea 10: Base local, repositorio e historial
+### Task 10: Base local, repositorio e historial
 
 **Archivos:**
 - Crear: `src/datos/db.ts`, `src/datos/repositorio.ts`, `src/datos/guardar.ts`
@@ -473,7 +473,7 @@ Reglas:
 
 ---
 
-### Tarea 11: Sincronización con Supabase
+### Task 11: Sincronización con Supabase
 
 **Archivos:**
 - Crear: `supabase/migrations/0001_inicial.sql`, `src/sync/mapeo.ts`, `src/sync/supabase.ts`, `src/sync/sincronizar.ts`
@@ -510,7 +510,7 @@ Reglas:
 
 ---
 
-### Tarea 12: Acceso: negocio, usuarios y PIN
+### Task 12: Acceso: negocio, usuarios y PIN
 
 **Archivos:**
 - Crear: `src/auth/pin.ts`, `src/auth/sesion.ts`, `src/ui/acceso/Acceso.tsx`
@@ -544,7 +544,7 @@ Flujo (spec §7.7):
 
 ---
 
-### Tarea 13: Pantalla Anotar (texto, voz y confirmación)
+### Task 13: Pantalla Anotar (texto, voz y confirmación)
 
 **Archivos:**
 - Crear: `src/ui/Navegacion.tsx`, `src/ui/anotar/Anotar.tsx`, `src/ui/anotar/Confirmacion.tsx`, `src/ui/anotar/useDictado.ts`
@@ -578,7 +578,7 @@ Pantalla (seguir el artboard "1 · Anotar venta" de las pantallas de muestra):
 
 ---
 
-### Tarea 14: Pantalla Clientes (fiados, abonos, canastillas)
+### Task 14: Pantalla Clientes (fiados, abonos, canastillas)
 
 **Archivos:**
 - Crear: `src/ui/clientes/Clientes.tsx`, `src/ui/comun/Historial.tsx`
@@ -602,7 +602,7 @@ Pantalla (artboard "2 · Consultar cliente"):
 
 ---
 
-### Tarea 15: Pantallas Lotes y Cierre
+### Task 15: Pantallas Lotes y Cierre
 
 **Archivos:**
 - Crear: `src/ui/lotes/Lotes.tsx`, `src/ui/cierre/Cierre.tsx`
@@ -628,7 +628,7 @@ Cierre (artboard "4 · Cierre del día"): fiado hoy, abonos hoy, fiados de hoy, 
 
 ---
 
-### Tarea 16: PWA instalable, sin señal y publicación
+### Task 16: PWA instalable, sin señal y publicación
 
 **Archivos:**
 - Modificar: `vite.config.ts` (vite-plugin-pwa: `registerType: 'autoUpdate'`, manifest con `name: 'Cuentas Claras'`, `lang: 'es-CO'`, `theme_color: '#1F6B45'`, `background_color: '#FBFAF6'`, `display: 'standalone'`, íconos de 192 y 512 px), `src/main.tsx` (registrar el service worker e `iniciarSincronizacion`), `README.md`
