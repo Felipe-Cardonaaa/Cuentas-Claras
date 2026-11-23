@@ -117,7 +117,7 @@ function parsearVenta(frase: string): ResultadoFrase {
   const items: ItemFrase[] = [];
   let unidadAnterior: Unidad = 'canastilla';
   for (const trozo of dividirItems(m[3])) {
-    const it = trozo.match(new RegExp(`^(.+?) (?:${UNIDAD} )?de (.+?) a (.+)$`, 'i'));
+    const it = trozo.match(new RegExp(`^(.+?) (?:${UNIDAD} )?de (.+?) (?:a|en) (.+)$`, 'i'));
     if (!it) return fallo(ERROR_FRASE);
     const unidad: Unidad = aUnidad(it[2]) ?? unidadAnterior;
     const cantidad = leerCantidad(it[1], unidad);
@@ -136,8 +136,8 @@ function dividirItems(s: string): string[] {
   const items: string[] = [];
   for (const trozo of trozos) {
     const anterior = items[items.length - 1];
-    const anteriorCompleto = anterior !== undefined && / a \S/i.test(anterior);
-    const pareceItem = / de .+ a /i.test(` ${trozo}`);
+    const anteriorCompleto = anterior !== undefined && / (a|en) \S/i.test(anterior);
+    const pareceItem = / de .+ (a|en) /i.test(` ${trozo}`);
     if (items.length === 0 || (anteriorCompleto && pareceItem)) items.push(trozo);
     else items[items.length - 1] += ` y ${trozo}`;
   }

@@ -31,7 +31,11 @@ export function buscarCoincidencia(escrito: string, catalogo: Entrada[]): Coinci
     const otro = c.nombreNormalizado;
     const limite = Math.min(n.length, otro.length) <= 4 ? 1 : 2;
     const d = distancia(n, otro);
-    const prefijo = n.length >= 3 && otro.length >= 3 && (otro.startsWith(n) || n.startsWith(otro));
+    const palabrasN = n.split(' ');
+    const palabrasOtro = otro.split(' ');
+    const contiene = (a: string[], b: string[]) => a.every((p) => b.includes(p));
+    const prefijo = n.length >= 3 && otro.length >= 3
+      && (otro.startsWith(n) || n.startsWith(otro) || contiene(palabrasN, palabrasOtro) || contiene(palabrasOtro, palabrasN));
     if (d <= limite || prefijo) {
       const puntaje = prefijo ? Math.min(d, limite) : d;
       if (!mejor || puntaje < mejor.d) mejor = { entrada: c, d: puntaje };

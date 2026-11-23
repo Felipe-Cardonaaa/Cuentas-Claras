@@ -137,3 +137,22 @@ describe('revisión final: frases dictadas', () => {
     expect(parsearFrase('Marta compró 2 canastillas de mango a 4.5 debe')).toEqual({ ok: false, error: 'No entendí el precio' });
   });
 });
+
+describe('frases reales del puesto (iPad de Felipe)', () => {
+  const venta = (precio: number, estado: string, producto: string) =>
+    ({ ok: true, intencion: { tipo: 'venta', cliente: 'Orlando', estado, items: [{ cantidad: 3, unidad: 'canastilla', producto, precioUnitario: precio }] } });
+  it('"en" antes del precio', () => {
+    expect(parsearFrase('Orlando compro 3 canastillas de criollo en 60000, debe')).toMatchObject(venta(60000, 'debe', 'criollo'));
+  });
+  it('"60k"', () => {
+    expect(parsearFrase('Orlando compro 3 canastillas de criollo a 60k, pago')).toMatchObject(venta(60000, 'pago', 'criollo'));
+    expect(parsearFrase('Orlando compro 3 canastillas de criollo a 60 k pago')).toMatchObject(venta(60000, 'pago', 'criollo'));
+  });
+  it('"60mil" pegado', () => {
+    expect(parsearFrase('Orlando compro 3 canastillas de mango criollo a 60mil debe')).toMatchObject(venta(60000, 'debe', 'mango criollo'));
+  });
+  it('"cada una" y "c/u" después del precio', () => {
+    expect(parsearFrase('Orlando compró 3 canastillas de criollo a 60.000 cada una debe')).toMatchObject(venta(60000, 'debe', 'criollo'));
+    expect(parsearFrase('Orlando compró 3 canastillas de criollo a 60.000 c/u debe')).toMatchObject(venta(60000, 'debe', 'criollo'));
+  });
+});

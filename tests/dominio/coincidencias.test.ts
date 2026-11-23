@@ -32,3 +32,8 @@ describe('nombreDisponible', () => {
     expect(nombreDisponible('Pedro Pérez', cat)).toBe(true);
   });
 });
+
+it('"criollo" se parece a "mango criollo" (palabra completa)', () => {
+  const prods = [{ id: 'p1', nombre: 'mango criollo', nombreNormalizado: 'mango criollo' }];
+  expect(buscarCoincidencia('criollo', prods)).toMatchObject({ tipo: 'parecida', id: 'p1' });
+});
