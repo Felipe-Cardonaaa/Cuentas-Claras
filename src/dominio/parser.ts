@@ -23,6 +23,15 @@ export type ResultadoFrase = { ok: true; intencion: Intencion } | { ok: false; e
 export const ERROR_FRASE = 'No entendí la frase. Ejemplo: "Marta compró 2 canastillas de mango criollo a 45.000 debe"';
 const ERROR_CANTIDAD = 'No entendí la cantidad';
 const ERROR_PRECIO = 'No entendí el precio';
+const ERROR_ENTERAS = 'Las canastillas se cuentan enteras';
+
+/** Cantidad mayor que cero; si es de canastillas, entera. Devuelve el número o el mensaje de error. */
+function leerCantidad(s: string, unidad: Unidad): number | string {
+  const n = aNumero(s);
+  if (n === null || !(n > 0)) return ERROR_CANTIDAD;
+  if (unidad === 'canastilla' && !Number.isInteger(n)) return ERROR_ENTERAS;
+  return n;
+}
 
 const UNIDAD = '(canastillas?|canastas?|kilos?|kg)';
 
@@ -36,7 +45,10 @@ const fallo = (error: string): ResultadoFrase => ({ ok: false, error });
 const bien = (intencion: Intencion): ResultadoFrase => ({ ok: true, intencion });
 
 export function parsearFrase(texto: string): ResultadoFrase {
-  const t = texto.trim().replace(/\s+/g, ' ').replace(/[.,;!?]+$/, '');
+  const t = texto
+    .replace(/(?<!\d)[,;:]|[,;:](?!\d)/g, ' ') // comas del dictado, pero no las de "2,5" o "45,000"
+    .trim().replace(/\s+/g, ' ').replace(/[.!?¡¿]+$/, '').replace(/^[¡¿]+/, '')
+    .replace(new RegExp(`(\\S+) ${UNIDAD} y (medio|media)\\b`, 'gi'), '$1 y $3 $2');
   let m: RegExpMatchArray | null;
 
   if ((m = t.match(/^(.+?) pag[oó] todo$/i))) return bien({ tipo: 'pagoTotal', cliente: nombrePropio(m[1]) });
@@ -52,13 +64,13 @@ export function parsearFrase(texto: string): ResultadoFrase {
   }
 
   if ((m = t.match(/^(.+?) devolvi[oó] (.+?) canast(?:illa|a)s?$/i))) {
-    const cantidad = aNumero(m[2]);
-    return cantidad === null ? fallo(ERROR_CANTIDAD) : bien({ tipo: 'devolucion', cliente: nombrePropio(m[1]), cantidad });
+    const cantidad = leerCantidad(m[2], 'canastilla');
+    return typeof cantidad === 'string' ? fallo(cantidad) : bien({ tipo: 'devolucion', cliente: nombrePropio(m[1]), cantidad });
   }
 
   if ((m = t.match(new RegExp(`^entr(?:aron|[oó]) (.+?) ${UNIDAD} de (.+?)(?: (a|por) (.+))?$`, 'i')))) {
-    const cantidad = aNumero(m[1]);
-    if (cantidad === null) return fallo(ERROR_CANTIDAD);
+    const cantidad = leerCantidad(m[1], aUnidad(m[2])!);
+    if (typeof cantidad === 'string') return fallo(cantidad);
     let costo: { tipo: 'unitario' | 'total'; valor: number } | null = null;
     if (m[4]) {
       const valor = parsearPrecio(m[5]);
@@ -69,8 +81,8 @@ export function parsearFrase(texto: string): ResultadoFrase {
   }
 
   if ((m = t.match(/^(?:se vaci(?:aron|[oó])|vaci[eé]) (.+?) canast(?:illa|a)s? de (.+)$/i))) {
-    const cantidad = aNumero(m[1]);
-    return cantidad === null ? fallo(ERROR_CANTIDAD) : bien({ tipo: 'vaciado', producto: producto(m[2]), cantidad });
+    const cantidad = leerCantidad(m[1], 'canastilla');
+    return typeof cantidad === 'string' ? fallo(cantidad) : bien({ tipo: 'vaciado', producto: producto(m[2]), cantidad });
   }
 
   return parsearVenta(t);
@@ -107,11 +119,11 @@ function parsearVenta(frase: string): ResultadoFrase {
   for (const trozo of dividirItems(m[3])) {
     const it = trozo.match(new RegExp(`^(.+?) (?:${UNIDAD} )?de (.+?) a (.+)$`, 'i'));
     if (!it) return fallo(ERROR_FRASE);
-    const cantidad = aNumero(it[1]);
-    if (cantidad === null) return fallo(ERROR_CANTIDAD);
+    const unidad: Unidad = aUnidad(it[2]) ?? unidadAnterior;
+    const cantidad = leerCantidad(it[1], unidad);
+    if (typeof cantidad === 'string') return fallo(cantidad);
     const precio = parsearPrecio(it[4]);
     if (precio === null) return fallo(ERROR_PRECIO);
-    const unidad: Unidad = aUnidad(it[2]) ?? unidadAnterior;
     unidadAnterior = unidad;
     items.push({ cantidad, unidad, producto: producto(it[3]), precioUnitario: precio, prestada: unidad === 'canastilla' ? prestada : null });
   }
@@ -123,8 +135,10 @@ function dividirItems(s: string): string[] {
   const trozos = s.split(/ y /i);
   const items: string[] = [];
   for (const trozo of trozos) {
-    const pareceItem = / de .+ a /i.test(` ${trozo}`) || /^\S+ de /i.test(trozo);
-    if (items.length === 0 || pareceItem) items.push(trozo);
+    const anterior = items[items.length - 1];
+    const anteriorCompleto = anterior !== undefined && / a \S/i.test(anterior);
+    const pareceItem = / de .+ a /i.test(` ${trozo}`);
+    if (items.length === 0 || (anteriorCompleto && pareceItem)) items.push(trozo);
     else items[items.length - 1] += ` y ${trozo}`;
   }
   return items;

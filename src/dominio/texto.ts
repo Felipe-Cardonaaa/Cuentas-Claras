@@ -16,7 +16,7 @@ const UNIDADES: Record<string, number> = {
   dieciocho: 18, diecinueve: 19, veinte: 20, veintiun: 21, veintiuno: 21, veintiuna: 21, veintidos: 22,
   veintitres: 23, veinticuatro: 24, veinticinco: 25, veintiseis: 26, veintisiete: 27, veintiocho: 28,
   veintinueve: 29, treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60, setenta: 70, ochenta: 80,
-  noventa: 90, cien: 100, ciento: 100, doscientos: 200, trescientos: 300, cuatrocientos: 400,
+  noventa: 90, medio: 0.5, media: 0.5, cien: 100, ciento: 100, doscientos: 200, trescientos: 300, cuatrocientos: 400,
   quinientos: 500, seiscientos: 600, setecientos: 700, ochocientos: 800, novecientos: 900,
 };
 
@@ -29,17 +29,25 @@ export function aNumero(s: string): number | null {
   if (palabras.length === 0) return null;
   let total = 0;
   for (const p of palabras) {
-    const v = UNIDADES[p];
+    const v = /^\d+([.,]\d+)?$/.test(p) ? Number(p.replace(',', '.')) : UNIDADES[p];
     if (v === undefined) return null;
     total += v;
   }
   return total;
 }
 
-/** Precio en pesos: "45.000", "45000", "$45.000", "45 mil", "cuarenta y cinco mil". */
+/** Total en pesos enteros (evita centavos fantasma como 3300,0000000001). */
+export const pesos = (n: number) => Math.round(n);
+
+/** Precio en pesos enteros y mayor que cero: "45.000", "45,000", "45000", "$45.000", "45 mil", "cuarenta y cinco mil pesos". */
 export function parsearPrecio(s: string): number | null {
-  const t = sinTildes(s.toLowerCase()).replace(/\$/g, '').trim();
-  if (/^\d{1,3}(\.\d{3})+$/.test(t)) return Number(t.replace(/\./g, ''));
+  const v = leerPrecio(s);
+  return v !== null && Number.isInteger(v) && v > 0 ? v : null;
+}
+
+function leerPrecio(s: string): number | null {
+  const t = sinTildes(s.toLowerCase()).replace(/\$/g, '').replace(/\s+pesos?$/, '').trim();
+  if (/^\d{1,3}([.,]\d{3})+$/.test(t)) return Number(t.replace(/[.,]/g, ''));
   if (/^\d+$/.test(t)) return Number(t);
   const m = t.match(/^(.*?)\s*\bmil\b\s*(.*)$/);
   if (m) {

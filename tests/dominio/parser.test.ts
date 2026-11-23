@@ -108,3 +108,32 @@ describe('parsearFrase: errores', () => {
     });
   });
 });
+
+describe('revisión final: frases dictadas', () => {
+  it('pesos al final del precio', () => {
+    expect(parsearFrase('Marta compró 2 canastillas de mango criollo a 45.000 pesos debe'))
+      .toMatchObject({ ok: true, intencion: { items: [{ precioUnitario: 45000 }], estado: 'debe' } });
+    expect(parsearFrase('Marta abonó 40 mil pesos')).toEqual(ok({ tipo: 'abono', cliente: 'Marta', valor: 40000 }));
+  });
+  it('comas y punto que pone el dictado', () => {
+    expect(parsearFrase('Marta, compró 2 canastillas de mango criollo a 45.000, debe.'))
+      .toMatchObject({ ok: true, intencion: { cliente: 'Marta', estado: 'debe', items: [{ precioUnitario: 45000 }] } });
+  });
+  it('kilos y medio', () => {
+    expect(parsearFrase('Pedro compró dos kilos y medio de mandarina a 4.000 debe'))
+      .toMatchObject({ ok: true, intencion: { items: [{ cantidad: 2.5, unidad: 'kilo', producto: 'mandarina', precioUnitario: 4000 }] } });
+    expect(parsearFrase('Pedro compró 2 kilos y medio de mandarina a 4.000 debe'))
+      .toMatchObject({ ok: true, intencion: { items: [{ cantidad: 2.5 }] } });
+  });
+  it('2,5 kilos con coma decimal', () => {
+    expect(parsearFrase('Pedro compró 2,5 kilos de mandarina a 4.000 debe'))
+      .toMatchObject({ ok: true, intencion: { items: [{ cantidad: 2.5 }] } });
+  });
+  it('canastillas siempre enteras y nada en cero', () => {
+    expect(parsearFrase('Marta compró media canastilla de mango a 45.000 debe')).toEqual({ ok: false, error: 'Las canastillas se cuentan enteras' });
+    expect(parsearFrase('Marta devolvió media canastilla')).toEqual({ ok: false, error: 'Las canastillas se cuentan enteras' });
+    expect(parsearFrase('entraron 2,5 canastillas de mango')).toEqual({ ok: false, error: 'Las canastillas se cuentan enteras' });
+    expect(parsearFrase('Marta compró 0 canastillas de mango a 45.000 debe')).toEqual({ ok: false, error: 'No entendí la cantidad' });
+    expect(parsearFrase('Marta compró 2 canastillas de mango a 4.5 debe')).toEqual({ ok: false, error: 'No entendí el precio' });
+  });
+});

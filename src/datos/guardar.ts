@@ -88,7 +88,7 @@ export function costoDeEntrada(
   if (!costo) return { costoTotal: null, costoDetalle: null };
   const medida = unidad === 'kilo' ? `${cantidad} kg` : `${cantidad} canast.`;
   if (costo.tipo === 'unitario') {
-    return { costoTotal: cantidad * costo.valor, costoDetalle: `${medida} × ${formatoCOP(costo.valor)}` };
+    return { costoTotal: Math.round(cantidad * costo.valor), costoDetalle: `${medida} × ${formatoCOP(costo.valor)}` };
   }
   return { costoTotal: costo.valor, costoDetalle: `${medida} por ${formatoCOP(costo.valor)}` };
 }

@@ -1,5 +1,5 @@
 import type { Datos, Venta } from './tipos';
-import { formatoCOP } from './texto';
+import { formatoCOP, pesos } from './texto';
 
 export interface LineaCuenta {
   tipo: 'venta' | 'saldoInicial' | 'abono';
@@ -27,7 +27,7 @@ export function estadoCuenta(clienteId: string, datos: Datos): EstadoCuenta {
     .filter((v) => !v.borrado && v.clienteId === clienteId && v.estado === 'debe')
     .sort((a, b) => a.creadoEn.localeCompare(b.creadoEn))
     .map((v) => {
-      const total = v.cantidad * v.precioUnitario;
+      const total = pesos(v.cantidad * v.precioUnitario);
       return { tipo: 'venta', id: v.id, fecha: v.creadoEn, creadoPor: v.creadoPor, venta: v, total, pendiente: total, debe: true };
     });
   const abonos: LineaCuenta[] = datos.abonos

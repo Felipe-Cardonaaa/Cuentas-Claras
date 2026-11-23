@@ -32,7 +32,7 @@ export function resumenDia(fecha: string, datos: Datos): Cierre {
   const fiados = [...grupos.values()].map((v) => ({
     clienteId: v.clienteId!,
     descripcion: describirVenta(v, nombre(v.productoId)),
-    total: v.cantidad * v.precioUnitario,
+    total: Math.round(v.cantidad * v.precioUnitario),
   }));
 
   const vaciadosHoy = delDia(datos.vaciados);
@@ -57,6 +57,6 @@ export function resumenDia(fecha: string, datos: Datos): Cierre {
     abonos: delDia(datos.abonos).reduce((s, a) => s + a.valor, 0),
     productos,
     prestadasHoy: ventas.filter((v) => v.unidad === 'canastilla' && v.prestada === true).reduce((s, v) => s + v.cantidad, 0),
-    contado: ventas.filter((v) => v.unidad === 'canastilla' && v.estado === 'pago').reduce((s, v) => s + v.cantidad * v.precioUnitario, 0),
+    contado: ventas.filter((v) => v.unidad === 'canastilla' && v.estado === 'pago').reduce((s, v) => s + Math.round(v.cantidad * v.precioUnitario), 0),
   };
 }

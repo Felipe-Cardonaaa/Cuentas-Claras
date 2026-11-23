@@ -22,7 +22,7 @@ export function estadoLotes(productoId: string, datos: Datos): EstadoLote[] {
       for (const v of datos.ventas) {
         if (v.borrado || v.loteId !== lote.id || v.unidad !== 'canastilla') continue;
         vendidas += v.cantidad;
-        ingreso += v.cantidad * v.precioUnitario;
+        ingreso += Math.round(v.cantidad * v.precioUnitario);
       }
       const vaciadas = datos.vaciados.filter((x) => !x.borrado && x.loteId === lote.id).reduce((s, x) => s + x.cantidad, 0);
       return {

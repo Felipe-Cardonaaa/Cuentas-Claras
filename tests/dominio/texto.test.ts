@@ -45,3 +45,19 @@ describe('formato y fechas', () => {
     expect(nombrePropio('doña marta ramírez')).toBe('Doña Marta Ramírez');
   });
 });
+
+describe('revisión final: precios', () => {
+  it('"45,000" son miles y "pesos" se ignora', () => {
+    expect(parsearPrecio('45,000')).toBe(45000);
+    expect(parsearPrecio('45.000 pesos')).toBe(45000);
+    expect(parsearPrecio('cuarenta y cinco mil pesos')).toBe(45000);
+  });
+  it('rechaza precios con centavos o en cero', () => {
+    expect(parsearPrecio('4.5')).toBeNull();
+    expect(parsearPrecio('0')).toBeNull();
+  });
+  it('"dos y medio" = 2,5', () => {
+    expect(aNumero('dos y medio')).toBe(2.5);
+    expect(aNumero('2,5')).toBe(2.5);
+  });
+});

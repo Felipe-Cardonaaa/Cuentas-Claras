@@ -75,7 +75,7 @@ export function prepararBorrador(intencion: Intencion, datos: Datos): ResultadoB
           partes = r.partes;
           if (r.excede) b.avisos.push(`Solo quedan ${disponibles(id, datos)} canastillas de ${nombreDe(producto)}`);
         }
-        return { item, producto, partes, total: item.cantidad * item.precioUnitario };
+        return { item, producto, partes, total: Math.round(item.cantidad * item.precioUnitario) };
       });
       b.total = b.lineas.reduce((s, l) => s + l.total, 0);
       b.pide.estado = intencion.estado === null;

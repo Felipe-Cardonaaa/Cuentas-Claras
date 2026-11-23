@@ -58,3 +58,13 @@ describe('validarAbono', () => {
     expect(validarAbono(50000, 50000)).toBeNull();
   });
 });
+
+it('revisión final: plata redondeada a pesos, sin "debe" fantasma', () => {
+  const d = datosVacios();
+  d.ventas.push(venta({ clienteId: 'm', productoId: 'p', unidad: 'kilo', cantidad: 1.1, precioUnitario: 3000, estado: 'debe', creadoEn: '2026-11-12T14:00:00Z' }));
+  d.abonos.push(abono('m', 3300, '2026-11-13T14:00:00Z'));
+  expect(estadoCuenta('m', d)).toMatchObject({ saldo: 0, debe: false });
+  const d2 = datosVacios();
+  d2.ventas.push(venta({ clienteId: 'm', productoId: 'p', unidad: 'kilo', cantidad: 1.1, precioUnitario: 3000, estado: 'debe' }));
+  expect(Number.isInteger(estadoCuenta('m', d2).saldo)).toBe(true);
+});
