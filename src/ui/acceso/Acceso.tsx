@@ -1,4 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { liveQuery } from 'dexie';
+import { supabase } from '../../sync/supabase';
+import { sincronizar, type ClienteSync } from '../../sync/sincronizar';
 import type { Usuario } from '../../dominio/tipos';
 import { crearUsuario, elegirUsuario, entrarNegocio, negocioListo, usuariosDisponibles } from '../../auth/sesion';
 
@@ -13,10 +16,21 @@ export default function Acceso({ alEntrar }: { alEntrar: (u: Usuario) => void })
 
   async function recargar() {
     if (!(await negocioListo())) return setPaso('negocio');
-    setUsuarios(await usuariosDisponibles());
-    setPaso('elegir');
+    setPaso((p) => (p === 'cargando' || p === 'negocio' ? 'elegir' : p));
   }
   useEffect(() => { void recargar(); }, []);
+  // La lista se actualiza sola, también cuando los usuarios llegan desde otro celular.
+  useEffect(() => {
+    const sub = liveQuery(() => usuariosDisponibles()).subscribe({ next: setUsuarios, error: () => {} });
+    return () => sub.unsubscribe();
+  }, []);
+
+  async function trasEntrarNegocio() {
+    setPaso('cargando');
+    // Traer de una vez los usuarios que ya existen en otros celulares, para no crearlos repetidos.
+    if (supabase) await sincronizar(supabase as unknown as ClienteSync).catch(() => undefined);
+    await recargar();
+  }
 
   async function tecla(d: string) {
     if (!elegido) return;
@@ -31,20 +45,19 @@ export default function Acceso({ alEntrar }: { alEntrar: (u: Usuario) => void })
     }
   }
 
-  if (paso === 'cargando') return <main className="pantalla acceso" aria-busy="true"><h1 className="titulo">Cuentas Claras</h1></main>;
+  if (paso === 'cargando') {
+    return <main className="pantalla acceso" aria-busy="true"><h1 className="titulo">Cuentas Claras</h1><p className="suave">Cargando usuarios…</p></main>;
+  }
 
-  if (paso === 'negocio') return <EntrarNegocio alListo={recargar} />;
+  if (paso === 'negocio') return <EntrarNegocio alListo={trasEntrarNegocio} />;
 
   if (paso === 'crear') {
     return (
       <CrearUsuario
         primero={usuarios.length === 0}
-        alCrear={async (u) => {
-          if (usuarios.length === 0) {
-            alEntrar(u);
-          } else {
-            await recargar();
-          }
+        alCrear={(u) => {
+          if (usuarios.length === 0) alEntrar(u);
+          else setPaso('elegir');
         }}
         alCancelar={() => setPaso('elegir')}
       />

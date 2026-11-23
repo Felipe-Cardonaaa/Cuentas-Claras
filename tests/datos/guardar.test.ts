@@ -75,3 +75,30 @@ it('rechaza guardar si falta elegir', async () => {
   const b = await borradorDe('Marta compró 1 canastilla de mango criollo a 45.000 debe');
   await expect(guardarBorrador(b, elegir(), 'u1')).rejects.toThrow('Faltan datos por confirmar');
 });
+
+it('I1: dos líneas con el mismo producto nuevo crean un solo producto y guardan todo', async () => {
+  const b = await borradorDe('Marta compró 1 canastilla de piña a 40.000 y 2 kilos de piña a 3.000 debe empacado');
+  await guardarBorrador(b, elegir(), 'u1');
+  const d = await cargarDatos();
+  expect(d.productos.map((p) => p.nombre)).toEqual(['piña']);
+  expect(d.clientes.map((c) => c.nombre)).toEqual(['Marta']);
+  expect(d.ventas).toHaveLength(2);
+});
+
+it('I1: si algo falla a mitad, no queda nada guardado', async () => {
+  await sembrar();
+  const b = await borradorDe('Lucía compró 1 canastilla de mango criollo a 45.000 y 1 de guayaba a 30.000 debe empacado');
+  const proto = db.Table.prototype as { put: (...a: unknown[]) => unknown };
+  const original = proto.put;
+  let llamadas = 0;
+  const espia = vi.spyOn(proto, 'put').mockImplementation(function (this: { name: string }, ...args: unknown[]) {
+    if (this.name === 'ventas' && ++llamadas === 2) throw new Error('falla simulada');
+    return original.apply(this, args);
+  });
+  await expect(guardarBorrador(b, elegir(), 'u1')).rejects.toThrow('falla simulada');
+  espia.mockRestore();
+  const d = await cargarDatos();
+  expect(d.ventas).toHaveLength(0);
+  expect(d.clientes.map((c) => c.nombre)).toEqual(['Doña Marta']);
+  expect(d.productos.map((p) => p.nombre)).toEqual(['mango criollo']);
+});

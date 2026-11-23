@@ -43,3 +43,10 @@ it('sin usuarios ofrece crear el primero', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Crear' }));
   await waitFor(() => expect(alEntrar).toHaveBeenCalledWith(expect.objectContaining({ nombre: 'Luz' })));
 });
+
+it('I6: la lista de usuarios se actualiza sola cuando llegan por sincronización', async () => {
+  render(<Acceso alEntrar={vi.fn()} />);
+  expect(await screen.findByRole('button', { name: 'Crear el primer usuario' })).toBeInTheDocument();
+  await crearUsuario('Carlos', '1234');
+  expect(await screen.findByRole('button', { name: 'Carlos' })).toBeInTheDocument();
+});
