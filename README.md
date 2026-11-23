@@ -37,9 +37,14 @@ Sin estos pasos la app funciona, pero cada celular guarda sus datos por separado
 1. **Crear la base de datos (gratis):** entra a https://supabase.com, crea una cuenta y un proyecto nuevo (plan Free).
 2. **Crear las tablas:** en el proyecto, abre **SQL Editor**, pega todo el contenido de `supabase/migrations/0001_inicial.sql` y pulsa **Run**.
 3. **Crear la cuenta del negocio:** en **Authentication → Users → Add user**, crea un usuario con un correo y una clave. Esa es la cuenta con la que cada celular entra la primera vez.
-4. **Conectar la app:** en **Project Settings → API** copia la *Project URL* y la *anon public key*. Crea un archivo `.env` (copia de `.env.example`) con esos dos valores.
-5. **Publicar la app (gratis):** ejecuta `npm run build` y sube la carpeta `dist/` a Netlify (https://app.netlify.com/drop, arrastrando la carpeta) o a Vercel. Te da un enlace.
-6. **Instalar en cada celular:** abre el enlace.
+4. **Dar acceso solo a esa cuenta:** en **SQL Editor** ejecuta (cambiando el correo):
+   ```sql
+   insert into cuentas_negocio (uid) select id from auth.users where email = 'correo-del-negocio@ejemplo.com';
+   ```
+   Y en **Authentication → Sign In / Providers**, apaga **Allow new users to sign up**, para que nadie más pueda crear cuentas.
+5. **Conectar la app:** en **Project Settings → API** copia la *Project URL* y la *anon public key*. Crea un archivo `.env` (copia de `.env.example`) con esos dos valores.
+6. **Publicar la app (gratis):** ejecuta `npm run build` y sube la carpeta `dist/` a Netlify (https://app.netlify.com/drop, arrastrando la carpeta) o a Vercel. Te da un enlace.
+7. **Instalar en cada celular:** abre el enlace.
    - **Android (Chrome):** menú ⋮ → **Agregar a pantalla de inicio**.
    - **iPhone (Safari):** botón Compartir → **Agregar a inicio**.
-7. **Primera vez en cada celular:** entra con el correo y la clave del negocio, y luego cada persona crea su usuario con su PIN de 4 números.
+8. **Primera vez en cada celular:** entra con el correo y la clave del negocio. En el primer celular, cada persona crea su usuario con su PIN de 4 números; en los demás celulares los usuarios aparecen solos, solo hay que tocar el nombre y poner el PIN.
