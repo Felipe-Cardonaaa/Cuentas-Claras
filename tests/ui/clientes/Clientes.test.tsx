@@ -44,3 +44,12 @@ it('corregir la cantidad desde el historial cambia el saldo', async () => {
   await userEvent.click(await screen.findByRole('button', { name: /3 canast\. mango criollo/ }));
   expect(await screen.findByText('Carlos cambió cantidad: 2 → 3')).toBeInTheDocument();
 });
+
+it('I8: las devoluciones se pueden ver y corregir', async () => {
+  const m = (await db.clientes.toArray())[0];
+  await crear('devoluciones', { clienteId: m.id, cantidad: 1 } as never, 'u1');
+  render(<Clientes usuario={usuario} anotarCon={() => {}} />);
+  await userEvent.type(screen.getByLabelText('Buscar por nombre'), 'marta');
+  await userEvent.click(await screen.findByRole('button', { name: /Devolvió 1 canastilla/ }));
+  expect(await screen.findByLabelText('Cantidad')).toHaveValue('1');
+});

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { liveQuery } from 'dexie';
-import type { Cliente, Datos, Usuario } from '../../dominio/tipos';
+import type { Cliente, Datos, Devolucion, Usuario } from '../../dominio/tipos';
 import type { Tabla } from '../../datos/db';
 import { db } from '../../datos/db';
 import type { Conflicto } from '../../sync/sincronizar';
@@ -39,6 +39,7 @@ export default function Clientes({ usuario, anotarCon }: Props) {
   const [elegidoId, setElegidoId] = useState<string | null>(null);
   const [verTodo, setVerTodo] = useState(false);
   const [abierta, setAbierta] = useState<LineaCuenta | null>(null);
+  const [devolucionAbierta, setDevolucionAbierta] = useState<Devolucion | null>(null);
 
   const q = normalizarNombre(busqueda);
   const vivos = datos?.clientes.filter((c) => !c.borrado) ?? [];
@@ -56,7 +57,7 @@ export default function Clientes({ usuario, anotarCon }: Props) {
       ))}
       <label htmlFor="buscar" className="suave">Buscar por nombre</label>
       <input id="buscar" value={busqueda} autoComplete="off"
-        onChange={(e) => { setBusqueda(e.target.value); setElegidoId(null); setAbierta(null); setVerTodo(false); }} />
+        onChange={(e) => { setBusqueda(e.target.value); setElegidoId(null); setAbierta(null); setDevolucionAbierta(null); setVerTodo(false); }} />
 
       {!elegido && encontrados.length > 1 && (
         <div className="lista-usuarios">
@@ -85,7 +86,10 @@ export default function Clientes({ usuario, anotarCon }: Props) {
               </div>
             </section>
 
-            {abierta ? (
+            {devolucionAbierta ? (
+              <Historial tabla="devoluciones" registro={devolucionAbierta as never} titulo={`Devolvió ${devolucionAbierta.cantidad} canastillas`}
+                usuario={usuario} nombres={nombres} alCerrar={() => setDevolucionAbierta(null)} />
+            ) : abierta ? (
               <Historial
                 tabla={TABLA_LINEA[abierta.tipo]}
                 registro={(abierta.venta ?? findRegistro(datos, abierta)) as unknown as Record<string, unknown> & { id: string }}
@@ -113,6 +117,23 @@ export default function Clientes({ usuario, anotarCon }: Props) {
                       </li>
                     ))}
                   </ul>
+                )}
+                {datos.devoluciones.some((d) => !d.borrado && d.clienteId === elegido.id) && (
+                  <>
+                    <h3 className="negrita" style={{ margin: 0 }}>Canastillas devueltas</h3>
+                    <ul className="lista tarjeta" style={{ padding: '0 16px' }}>
+                      {datos.devoluciones.filter((d) => !d.borrado && d.clienteId === elegido.id).map((d) => (
+                        <li key={d.id}>
+                          <button type="button" className="linea-boton" onClick={() => setDevolucionAbierta(d)}>
+                            <span className="linea-arriba">
+                              <span>Devolvió {d.cantidad} {d.cantidad === 1 ? 'canastilla' : 'canastillas'}</span>
+                              <span className="suave">{fechaBogota(d.creadoEn).slice(5)} · {horaBogota(d.creadoEn)}</span>
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
                 )}
                 {!verTodo && cuenta.todas.length > cuenta.lineas.length && (
                   <button type="button" className="enlace" onClick={() => setVerTodo(true)}>Ver todo el historial</button>

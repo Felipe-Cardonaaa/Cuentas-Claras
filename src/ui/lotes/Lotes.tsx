@@ -4,6 +4,10 @@ import { estadoLotes, type EstadoLote } from '../../dominio/lotes';
 import { formatoCOP, horaBogota, parsearPrecio } from '../../dominio/texto';
 import { editar } from '../../datos/repositorio';
 import { useDatos, useNombresUsuarios } from '../useDatos';
+import Historial from '../comun/Historial';
+import type { Tabla } from '../../datos/db';
+
+interface Abierto { tabla: Tabla; registro: Record<string, unknown> & { id: string }; titulo: string }
 
 interface Props { usuario: Usuario; anotarCon: (frase: string) => void }
 
@@ -40,7 +44,7 @@ function AgregarCosto({ e, usuario }: { e: EstadoLote; usuario: Usuario }) {
   );
 }
 
-function VentasDelLote({ e, datos, nombres }: { e: EstadoLote; datos: Datos; nombres: Record<string, string> }) {
+function VentasDelLote({ e, datos, nombres, abrir }: { e: EstadoLote; datos: Datos; nombres: Record<string, string>; abrir: (a: Abierto) => void }) {
   const ventas = datos.ventas.filter((v) => !v.borrado && v.loteId === e.lote.id && v.unidad === 'canastilla');
   const vaciados = datos.vaciados.filter((v) => !v.borrado && v.loteId === e.lote.id);
   if (ventas.length + vaciados.length === 0) return <p className="suave">Todavía no hay ventas de este lote.</p>;
@@ -48,15 +52,23 @@ function VentasDelLote({ e, datos, nombres }: { e: EstadoLote; datos: Datos; nom
   return (
     <ul className="lista">
       {ventas.map((v) => (
-        <li key={v.id} className="linea-arriba" style={{ padding: '6px 0' }}>
-          <span>{cliente(v.clienteId)} · {v.cantidad}</span>
-          <span className="suave">{horaBogota(v.creadoEn)} · {nombres[v.creadoPor] ?? '—'}</span>
+        <li key={v.id}>
+          <button type="button" className="linea-boton" onClick={() => abrir({ tabla: 'ventas', registro: v as never, titulo: `${cliente(v.clienteId)} · ${v.cantidad}` })}>
+            <span className="linea-arriba">
+              <span>{cliente(v.clienteId)} · {v.cantidad}</span>
+              <span className="suave">{horaBogota(v.creadoEn)} · {nombres[v.creadoPor] ?? '—'}</span>
+            </span>
+          </button>
         </li>
       ))}
       {vaciados.map((v) => (
-        <li key={v.id} className="linea-arriba" style={{ padding: '6px 0' }}>
-          <span>Vaciadas · {v.cantidad}</span>
-          <span className="suave">{horaBogota(v.creadoEn)} · {nombres[v.creadoPor] ?? '—'}</span>
+        <li key={v.id}>
+          <button type="button" className="linea-boton" onClick={() => abrir({ tabla: 'vaciados', registro: v as never, titulo: `Vaciadas · ${v.cantidad}` })}>
+            <span className="linea-arriba">
+              <span>Vaciadas · {v.cantidad}</span>
+              <span className="suave">{horaBogota(v.creadoEn)} · {nombres[v.creadoPor] ?? '—'}</span>
+            </span>
+          </button>
         </li>
       ))}
     </ul>
@@ -67,7 +79,15 @@ export default function Lotes({ usuario, anotarCon }: Props) {
   const datos = useDatos();
   const nombres = useNombresUsuarios();
   const [abiertos, setAbiertos] = useState<Record<string, boolean>>({});
+  const [abierto, setAbierto] = useState<Abierto | null>(null);
   if (!datos) return null;
+  if (abierto) {
+    return (
+      <div className="contenido">
+        <Historial tabla={abierto.tabla} registro={abierto.registro} titulo={abierto.titulo} usuario={usuario} nombres={nombres} alCerrar={() => setAbierto(null)} />
+      </div>
+    );
+  }
   const productos = datos.productos.filter((p) => !p.borrado)
     .map((p) => ({ p, estados: estadoLotes(p.id, datos) }))
     .filter((x) => x.estados.length > 0);
@@ -110,11 +130,17 @@ export default function Lotes({ usuario, anotarCon }: Props) {
                       <AgregarCosto e={e} usuario={usuario} />
                     </>
                   )}
-                  <button type="button" className="enlace" style={{ alignSelf: 'flex-start' }}
-                    onClick={() => setAbiertos({ ...abiertos, [e.lote.id]: !abiertos[e.lote.id] })}>
-                    Ver a quién se vendió cada una
-                  </button>
-                  {abiertos[e.lote.id] && <VentasDelLote e={e} datos={datos} nombres={nombres} />}
+                  <div className="linea-arriba">
+                    <button type="button" className="enlace"
+                      onClick={() => setAbiertos({ ...abiertos, [e.lote.id]: !abiertos[e.lote.id] })}>
+                      Ver a quién se vendió cada una
+                    </button>
+                    <button type="button" className="enlace"
+                      onClick={() => setAbierto({ tabla: 'lotes', registro: e.lote as never, titulo: `Lote ${fecha} · ${p.nombre}` })}>
+                      Corregir lote
+                    </button>
+                  </div>
+                  {abiertos[e.lote.id] && <VentasDelLote e={e} datos={datos} nombres={nombres} abrir={setAbierto} />}
                 </div>
               );
             })}

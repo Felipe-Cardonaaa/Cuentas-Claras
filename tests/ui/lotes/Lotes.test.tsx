@@ -35,3 +35,24 @@ it('muestra a quién se vendió', async () => {
   await userEvent.click((await screen.findAllByRole('button', { name: 'Ver a quién se vendió cada una' }))[0]);
   expect(await screen.findByText('Cliente de paso · 45')).toBeInTheDocument();
 });
+
+it('I8: se puede corregir una venta de contado desde el lote', async () => {
+  render(<Lotes usuario={usuario} anotarCon={() => {}} />);
+  await userEvent.click((await screen.findAllByRole('button', { name: 'Ver a quién se vendió cada una' }))[0]);
+  await userEvent.click(await screen.findByRole('button', { name: /Cliente de paso · 45/ }));
+  const cantidad = await screen.findByLabelText('Cantidad');
+  await userEvent.clear(cantidad);
+  await userEvent.type(cantidad, '40');
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar corrección' }));
+  expect(await screen.findByText('40 de 50 vendidas')).toBeInTheDocument();
+});
+
+it('I8: se puede corregir el lote', async () => {
+  render(<Lotes usuario={usuario} anotarCon={() => {}} />);
+  await userEvent.click((await screen.findAllByRole('button', { name: 'Corregir lote' }))[0]);
+  const c = await screen.findByLabelText('Canastillas');
+  await userEvent.clear(c);
+  await userEvent.type(c, '60');
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar corrección' }));
+  expect(await screen.findByText('45 de 60 vendidas')).toBeInTheDocument();
+});
