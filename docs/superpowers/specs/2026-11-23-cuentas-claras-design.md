@@ -1,6 +1,6 @@
 # Cuentas Claras — Documento de diseño
 
-Fecha: 2026-11-23 · Estado: borrador para aprobación
+Fecha: 2026-11-23 · Estado: listo para aprobación
 
 Pantallas de muestra: https://claude.ai/artifact/6c1DhScXQxPawSrBgyrjPU
 (Anotar venta, Consultar cliente, Lotes, Cierre del día).
@@ -177,6 +177,12 @@ a B reutilizando la base de datos.
    actual. **[decisión del diseñador]**
 6. En base de datos, cada venta tiene una columna booleana `debe` y su valor
    (total y pendiente).
+7. **Saldo inicial (migración desde la libreta)**: los fiados existentes al
+   empezar se pasan como un saldo inicial por cliente, en una sola línea:
+   "Marta debía 150.000". Aparece en el detalle como "Saldo de la libreta" con
+   la fecha en que se anotó, cuenta como la deuda más vieja del cliente (los
+   abonos la cubren primero) y tiene su propio `debe`/pendiente. Solo puede
+   haber un saldo inicial por cliente. **[detalles: decisión del diseñador]**
 
 ### 7.5 Canastillas prestadas
 1. Cada cliente lleva un conteo de canastillas prestadas, aparte de la plata, con
