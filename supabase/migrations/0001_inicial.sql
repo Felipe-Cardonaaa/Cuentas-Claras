@@ -26,6 +26,7 @@ alter table cuentas_negocio enable row level security;
 create or replace function es_del_negocio() returns boolean language sql stable security definer set search_path = public as $$
   select exists (select 1 from cuentas_negocio where uid = auth.uid())
 $$;
+grant execute on function es_del_negocio() to authenticated;
 
 create table usuarios (
   id uuid primary key, nombre text not null, pin_hash text not null, pin_sal text not null,
@@ -104,6 +105,8 @@ begin
     execute format('create trigger %I_recibido before insert or update on %I for each row execute function marcar_recibido()', t, t);
     execute format('create index %I_recibido_idx on %I (recibido_en)', t, t);
     execute format('alter table %I enable row level security', t);
+    -- Acceso explícito para la app (no depende de la opción "Grant API access" del proyecto).
+    execute format('grant select, insert, update on %I to authenticated', t);
     execute format('create policy %I_negocio on %I for all using (es_del_negocio()) with check (es_del_negocio())', t, t);
   end loop;
 end $$;
