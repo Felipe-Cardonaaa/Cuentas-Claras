@@ -1,0 +1,24 @@
+# Netlify arma y publica la app sola cada vez que hay cambios en la rama main.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Dirección del proyecto de Supabase y su clave pública (publishable).
+  # Esta clave va dentro de la app que descarga cualquier celular, así que no es secreta:
+  # lo que protege los datos son las reglas de acceso de la base (cuentas_negocio).
+  # NUNCA pongas aquí la secret key ni la service_role.
+  VITE_SUPABASE_URL = "https://haiswimhupjgsitxmtup.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "sb_publishable_cIDQT4G2DQxbiZMDmb-VVA_0qVHiSPC"
+
+# Que los celulares revisen siempre si hay versión nueva.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
