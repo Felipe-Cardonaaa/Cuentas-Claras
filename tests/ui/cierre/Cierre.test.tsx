@@ -27,7 +27,7 @@ it('resume el día', async () => {
   // Marta fió 90.000 y abonó 100.000 (cubre su fiado); Pedro fió 32.000 y no ha pagado.
   expect(await screen.findByText('Quedó debiendo hoy')).toBeInTheDocument();
   expect(screen.getByLabelText('Quedó debiendo hoy')).toHaveTextContent('$32.000');
-  expect(screen.getByText('$100.000')).toBeInTheDocument();
+  expect(screen.getAllByText('$100.000').length).toBeGreaterThan(0);
   expect(screen.getByText('Pagado')).toBeInTheDocument();
   expect(screen.getByText('Debe $32.000')).toBeInTheDocument();
   expect(screen.getByText('Doña Marta · 2 canast. mango criollo')).toBeInTheDocument();
@@ -45,4 +45,13 @@ it('sin línea de prestadas y con productos sin entrada', async () => {
   expect(within(fila).getAllByRole('cell').map((c) => c.textContent)).toEqual(['criollo', '0', '3', '0', '—']);
   expect(screen.getByText(/Falta anotar la mercancía que entró de: criollo/)).toBeInTheDocument();
   expect(screen.queryByText('Canastillas prestadas hoy')).not.toBeInTheDocument();
+});
+
+it('muestra las listas Pagaron hoy y Quedaron debiendo', async () => {
+  render(<Cierre />);
+  const pagaron = await screen.findByLabelText('Pagaron hoy');
+  expect(within(pagaron).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Doña Marta$100.000']);
+  const deben = screen.getByLabelText('Quedaron debiendo');
+  expect(within(deben).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Don Pedro$32.000']);
+  expect(within(deben).queryByText('Doña Marta')).not.toBeInTheDocument();
 });

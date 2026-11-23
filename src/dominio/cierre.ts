@@ -10,6 +10,10 @@ export interface Cierre {
   totalFiado: number;
   /** Lo que sigue debiéndose de los fiados del día. */
   totalPendiente: number;
+  /** Abonos del día por cliente, de mayor a menor. */
+  pagaron: { clienteId: string; valor: number }[];
+  /** Lo que cada cliente quedó debiendo de los fiados del día, de mayor a menor. */
+  deben: { clienteId: string; pendiente: number }[];
   abonos: number;
   /** quedan = null cuando el producto no tiene ninguna entrada de mercancía anotada. */
   productos: { productoId: string; nombre: string; entraron: number; vendidas: number; vaciadas: number; quedan: number | null }[];
@@ -70,8 +74,20 @@ export function resumenDia(fecha: string, datos: Datos): Cierre {
     };
   });
 
+  const sumarPor = <T>(xs: T[], clave: (x: T) => string, valor: (x: T) => number) => {
+    const m = new Map<string, number>();
+    for (const x of xs) m.set(clave(x), (m.get(clave(x)) ?? 0) + valor(x));
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  };
+  const pagaron = sumarPor(delDia(datos.abonos), (a) => a.clienteId, (a) => a.valor).map(([clienteId, valor]) => ({ clienteId, valor }));
+  const deben = sumarPor(fiados, (f) => f.clienteId, (f) => f.pendiente)
+    .filter(([, pendiente]) => pendiente > 0)
+    .map(([clienteId, pendiente]) => ({ clienteId, pendiente }));
+
   return {
     fecha,
+    pagaron,
+    deben,
     fiados,
     totalFiado: fiados.reduce((s, f) => s + f.total, 0),
     totalPendiente: fiados.reduce((s, f) => s + f.pendiente, 0),

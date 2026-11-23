@@ -23,6 +23,38 @@ export default function Cierre() {
         <div className="cifra pagado"><span>Abonos hoy</span><span>{formatoCOP(c.abonos)}</span></div>
       </div>
 
+      <section className="tarjeta" aria-label="Pagaron hoy">
+        <div className="linea-arriba">
+          <span className="negrita">Pagaron hoy</span>
+          <span className="texto-pagado">{formatoCOP(c.abonos)}</span>
+        </div>
+        {c.pagaron.length === 0 ? <span className="suave">Hoy nadie abonó.</span> : (
+          <ul className="lista">
+            {c.pagaron.map((p) => (
+              <li key={p.clienteId} className="linea-arriba" style={{ padding: '8px 0' }}>
+                <span>{cliente(p.clienteId)}</span><span className="texto-pagado">{formatoCOP(p.valor)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="tarjeta" aria-label="Quedaron debiendo">
+        <div className="linea-arriba">
+          <span className="negrita">Quedaron debiendo</span>
+          <span className="texto-deuda">{formatoCOP(c.totalPendiente)}</span>
+        </div>
+        {c.deben.length === 0 ? <span className="suave">Nadie quedó debiendo de lo fiado hoy.</span> : (
+          <ul className="lista">
+            {c.deben.map((d) => (
+              <li key={d.clienteId} className="linea-arriba" style={{ padding: '8px 0' }}>
+                <span>{cliente(d.clienteId)}</span><span className="texto-deuda">{formatoCOP(d.pendiente)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section className="tarjeta" aria-label="Fiados del día">
         <span className="negrita">Fiados de hoy</span>
         {c.fiados.length === 0 ? <span className="suave">No hubo fiados.</span> : c.fiados.map((f, i) => (
