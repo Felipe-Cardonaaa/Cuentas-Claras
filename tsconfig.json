@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "types": ["vitest/globals", "@testing-library/jest-dom", "vite/client"]
+    "types": ["vitest/globals", "@testing-library/jest-dom", "vite/client", "vite-plugin-pwa/client", "node"]
   },
   "include": ["src", "tests", "vite.config.ts"]
 }
