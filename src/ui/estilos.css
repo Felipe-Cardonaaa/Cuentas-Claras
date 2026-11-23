@@ -12,9 +12,102 @@
   --blanco: #FFFFFF;
   --alto-boton: 52px;
   font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  font-size: 17px;
   color: var(--texto);
   background: var(--fondo);
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--fondo); }
-button { font-family: inherit; min-height: var(--alto-boton); }
+button, input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
+button { min-height: var(--alto-boton); cursor: pointer; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+input, textarea, select {
+  width: 100%; padding: 12px 14px; border: 2px solid var(--borde); border-radius: 14px; background: var(--blanco); font-size: 19px;
+}
+textarea { resize: none; line-height: 1.35; }
+:focus-visible { outline: 3px solid var(--verde); outline-offset: 2px; }
+
+.app { min-height: 100dvh; display: flex; flex-direction: column; max-width: 560px; margin: 0 auto; }
+.encabezado { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px 16px 8px; gap: 12px; }
+.encabezado-der { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.titulo { font-size: 24px; margin: 0; }
+.pantalla { flex: 1; padding: 8px 16px 96px; display: flex; flex-direction: column; gap: 14px; }
+.contenido { display: flex; flex-direction: column; gap: 14px; }
+.suave { color: var(--texto-suave); font-size: 15px; }
+.negrita { font-weight: 700; }
+.grande { font-size: 22px; }
+.etiqueta-grande { font-size: 18px; }
+
+.estado-red { font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 999px; }
+.en-linea { background: var(--verde-claro); color: var(--verde); }
+.sin-senal { background: var(--deuda-fondo); color: var(--deuda-texto); }
+.enlace { background: none; border: none; color: var(--verde); font-weight: 700; min-height: 44px; padding: 0; text-decoration: underline; }
+
+.boton { border-radius: 12px; font-weight: 700; padding: 0 16px; width: 100%; }
+.boton.principal { background: var(--verde); color: var(--blanco); border: none; }
+.boton.secundario { background: var(--blanco); color: var(--texto); border: 2px solid var(--borde); }
+.boton.grande { background: var(--blanco); border: 2px solid var(--borde); font-size: 20px; min-height: 64px; }
+.dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.opcion { border-radius: 12px; border: 2px solid var(--borde); background: var(--blanco); font-weight: 700; }
+.opcion.activa { border-color: var(--texto); background: var(--texto); color: var(--blanco); }
+
+.microfono { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.boton-mic {
+  width: 96px; height: 96px; border-radius: 999px; border: none; background: var(--verde); color: var(--blanco);
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(31, 107, 69, 0.28);
+}
+.boton-mic.escuchando { background: var(--deuda-texto); }
+
+.tarjeta { background: var(--blanco); border: 1px solid var(--linea); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.confirmacion { border: 2px solid var(--verde); }
+.confirmacion h2 { margin: 0; font-size: 19px; }
+.filas { display: grid; grid-template-columns: 96px minmax(0, 1fr); row-gap: 8px; margin: 0; }
+.filas dt { color: var(--texto-suave); }
+.filas dd { margin: 0; }
+.fila-linea { display: contents; }
+.pregunta { display: flex; flex-direction: column; gap: 8px; }
+.pregunta p { margin: 0; }
+
+.etiqueta { font-weight: 700; padding: 2px 10px; border-radius: 8px; display: inline-block; }
+.etiqueta.deuda { background: var(--deuda-fondo); color: var(--deuda-texto); }
+.etiqueta.pagado { background: var(--verde-claro); color: var(--verde); }
+.error { background: var(--deuda-fondo); color: var(--deuda-texto); padding: 10px 14px; border-radius: 12px; margin: 0; font-weight: 700; }
+.aviso { color: var(--deuda-texto); margin: 0; font-weight: 700; }
+.exito { background: var(--verde-claro); color: var(--verde); padding: 10px 14px; border-radius: 12px; margin: 0; font-weight: 700; }
+
+.navegacion {
+  position: fixed; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--linea); background: var(--blanco); padding: 6px 4px calc(10px + env(safe-area-inset-bottom));
+}
+.nav { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; color: var(--texto-suave); font-size: 14px; }
+.nav.activo { color: var(--verde); font-weight: 700; }
+
+.acceso { align-items: stretch; padding-top: 32px; max-width: 480px; margin: 0 auto; width: 100%; }
+.lista-usuarios { display: flex; flex-direction: column; gap: 10px; }
+.formulario { display: flex; flex-direction: column; gap: 10px; }
+.puntos { display: flex; gap: 14px; justify-content: center; margin: 8px 0; }
+.punto { width: 18px; height: 18px; border-radius: 999px; border: 2px solid var(--texto); }
+.punto.lleno { background: var(--texto); }
+.teclado { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tecla { min-height: 64px; font-size: 26px; font-weight: 700; border-radius: 14px; border: 2px solid var(--borde); background: var(--blanco); }
+.tecla.secundaria { font-size: 16px; }
+
+.resumen { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.cifra { background: var(--fondo); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.cifra span:last-child { font-size: 24px; font-weight: 700; }
+.cifra.deuda { background: var(--deuda-fondo); color: var(--deuda-texto); }
+.cifra.pagado { background: var(--verde-claro); color: var(--verde-oscuro); }
+.lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.lista > li { border-bottom: 1px solid var(--linea); }
+.lista > li:last-child { border-bottom: none; }
+.linea-boton { width: 100%; background: none; border: none; text-align: left; padding: 12px 0; display: flex; flex-direction: column; gap: 4px; }
+.linea-arriba, .linea-abajo { display: flex; justify-content: space-between; gap: 8px; }
+.linea-abajo { font-size: 14px; color: var(--texto-suave); }
+.texto-deuda { color: var(--deuda-texto); font-weight: 700; }
+.texto-pagado { color: var(--verde); font-weight: 700; }
+.barra { height: 12px; border-radius: 999px; background: #EEEBE3; overflow: hidden; }
+.barra > div { height: 100%; background: var(--verde); }
+.tabla { width: 100%; border-collapse: collapse; font-size: 15px; }
+.tabla th { color: var(--texto-suave); font-weight: 400; text-align: right; padding: 4px; }
+.tabla th:first-child, .tabla td:first-child { text-align: left; }
+.tabla td { text-align: right; padding: 6px 4px; font-size: 16px; }

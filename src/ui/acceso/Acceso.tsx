@@ -31,7 +31,7 @@ export default function Acceso({ alEntrar }: { alEntrar: (u: Usuario) => void })
     }
   }
 
-  if (paso === 'cargando') return <main className="pantalla acceso" aria-busy="true" />;
+  if (paso === 'cargando') return <main className="pantalla acceso" aria-busy="true"><h1 className="titulo">Cuentas Claras</h1></main>;
 
   if (paso === 'negocio') return <EntrarNegocio alListo={recargar} />;
 
