@@ -111,7 +111,7 @@ function parsearVenta(frase: string): ResultadoFrase {
     if (cantidad === null) return fallo(ERROR_CANTIDAD);
     const precio = parsearPrecio(it[4]);
     if (precio === null) return fallo(ERROR_PRECIO);
-    const unidad = aUnidad(it[2]) ?? unidadAnterior;
+    const unidad: Unidad = aUnidad(it[2]) ?? unidadAnterior;
     unidadAnterior = unidad;
     items.push({ cantidad, unidad, producto: producto(it[3]), precioUnitario: precio, prestada: unidad === 'canastilla' ? prestada : null });
   }
