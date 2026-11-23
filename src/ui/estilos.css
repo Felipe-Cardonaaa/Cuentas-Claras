@@ -1,0 +1,20 @@
+:root {
+  --verde: #1F6B45;
+  --verde-oscuro: #174F33;
+  --verde-claro: #E8F3EC;
+  --deuda-texto: #8A3D06;
+  --deuda-fondo: #FDEBD8;
+  --fondo: #FBFAF6;
+  --texto: #1C1B19;
+  --texto-suave: #5C5A55;
+  --borde: #D6D2C8;
+  --linea: #E2DED4;
+  --blanco: #FFFFFF;
+  --alto-boton: 52px;
+  font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  color: var(--texto);
+  background: var(--fondo);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fondo); }
+button { font-family: inherit; min-height: var(--alto-boton); }
