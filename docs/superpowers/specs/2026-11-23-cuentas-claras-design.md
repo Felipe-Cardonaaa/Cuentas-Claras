@@ -119,7 +119,14 @@ a B reutilizando la base de datos.
    pregunta "¿Se llevó las canastillas? [Sí, prestadas] [No, empacado]". Si la
    frase ya dice "empacado" o "con canastilla", viene preseleccionado. No se
    puede guardar sin elegir. Nunca se pregunta en ventas por kilo.
-8. Antes de guardar, **siempre** se muestra una pantalla de confirmación con lo
+8. **Varios productos en una frase**: "Marta compró 1 canastilla de mango criollo
+   a 45.000 y 1 de zapote a 50.000 debe". Cada producto lleva su cantidad, unidad
+   y precio; el cliente y el estado (pagó/debe) aplican a todos. Si un producto
+   omite la unidad ("y 1 de zapote"), hereda la del anterior. La confirmación
+   muestra una línea por producto, con el total general, y la pregunta de
+   canastillas una vez por cada línea de canastilla entera. Se guarda todo o nada.
+   **[detalles: decisión del diseñador]**
+9. Antes de guardar, **siempre** se muestra una pantalla de confirmación con lo
    entendido (cliente, producto, lote, cantidad × precio = total, estado,
    canastillas, fecha/hora) y los botones Guardar / Corregir.
 
