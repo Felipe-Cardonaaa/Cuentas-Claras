@@ -4,6 +4,7 @@ import type { Usuario } from '../dominio/tipos';
 import { salir, usuarioActivo } from '../auth/sesion';
 import Acceso from './acceso/Acceso';
 import Anotar from './anotar/Anotar';
+import Clientes from './clientes/Clientes';
 import Navegacion, { type Pantalla } from './Navegacion';
 
 function fechaLarga(): string {
@@ -46,7 +47,8 @@ export default function App() {
       </header>
       <main className="pantalla">
         {pantalla === 'anotar' && <Anotar usuario={usuario} fraseInicial={frase} />}
-        {pantalla !== 'anotar' && <PantallaPendiente pantalla={pantalla} anotarCon={anotarCon} usuario={usuario} />}
+        {pantalla === 'clientes' && <Clientes usuario={usuario} anotarCon={anotarCon} />}
+        {(pantalla === 'lotes' || pantalla === 'cierre') && <PantallaPendiente pantalla={pantalla} anotarCon={anotarCon} usuario={usuario} />}
       </main>
       <Navegacion actual={pantalla} ir={(p) => { setFrase(''); setPantalla(p); }} />
     </div>
