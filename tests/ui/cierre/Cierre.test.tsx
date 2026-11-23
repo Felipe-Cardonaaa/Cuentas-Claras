@@ -30,3 +30,15 @@ it('resume el día', async () => {
   const fila = screen.getByRole('row', { name: /mango criollo/ });
   expect(within(fila).getAllByRole('cell').map((c) => c.textContent)).toEqual(['mango criollo', '50', '45', '0', '5']);
 });
+
+it('sin línea de prestadas y con productos sin entrada', async () => {
+  const p = await crear<Producto>('productos', { nombre: 'criollo', nombreNormalizado: '' }, 'u1');
+  await crear<Venta>('ventas', {
+    grupoId: 'z', loteId: null, unidad: 'canastilla', precioUnitario: 60000, clienteId: null, productoId: p.id, cantidad: 3, estado: 'pago', prestada: false,
+  }, 'u1');
+  render(<Cierre />);
+  const fila = await screen.findByRole('row', { name: /^criollo/ });
+  expect(within(fila).getAllByRole('cell').map((c) => c.textContent)).toEqual(['criollo', '0', '3', '0', '—']);
+  expect(screen.getByText(/Falta anotar la mercancía que entró de: criollo/)).toBeInTheDocument();
+  expect(screen.queryByText('Canastillas prestadas hoy')).not.toBeInTheDocument();
+});

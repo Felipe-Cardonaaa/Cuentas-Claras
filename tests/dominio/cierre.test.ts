@@ -42,3 +42,12 @@ it('foco 3: una venta de las 8:30 p. m. en Bogotá cuenta ese día', () => {
   expect(resumenDia('2026-11-17', d).totalFiado).toBe(45000);
   expect(resumenDia('2026-11-18', d).totalFiado).toBe(0);
 });
+
+it('muestra productos vendidos hoy aunque no tengan entrada anotada', () => {
+  const d = datosVacios();
+  d.productos.push(producto('cri', 'criollo'));
+  d.ventas.push(venta({ productoId: 'cri', loteId: null, cantidad: 3, precioUnitario: 60000, estado: 'debe', clienteId: 'g', creadoEn: HOY }));
+  expect(resumenDia('2026-11-17', d).productos).toEqual([
+    { productoId: 'cri', nombre: 'criollo', entraron: 0, vendidas: 3, vaciadas: 0, quedan: null },
+  ]);
+});

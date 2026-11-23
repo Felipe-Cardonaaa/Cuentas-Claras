@@ -40,12 +40,18 @@ export default function Cierre() {
           <tbody>
             {c.productos.map((p) => (
               <tr key={p.productoId}>
-                <td className="negrita">{p.nombre}</td><td>{p.entraron}</td><td>{p.vendidas}</td><td>{p.vaciadas}</td><td className="negrita">{p.quedan}</td>
+                <td className="negrita">{p.nombre}</td><td>{p.entraron}</td><td>{p.vendidas}</td><td>{p.vaciadas}</td><td className="negrita">{p.quedan === null ? '—' : p.quedan}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        <div className="linea-arriba"><span>Canastillas prestadas hoy</span><span className="negrita">{c.prestadasHoy}</span></div>
+        {c.productos.some((p) => p.quedan === null) && (
+          <p className="aviso" style={{ fontSize: 15 }}>
+            Falta anotar la mercancía que entró de: {c.productos.filter((p) => p.quedan === null).map((p) => p.nombre).join(', ')}.
+            Ejemplo: "entraron 50 canastillas de {c.productos.find((p) => p.quedan === null)!.nombre}".
+          </p>
+        )}
+        {c.productos.length === 0 && <p className="suave">Hoy no se movieron canastillas.</p>}
       </section>
 
       <section className="tarjeta" aria-label="Vendido de contado">

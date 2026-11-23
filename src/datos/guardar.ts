@@ -4,7 +4,7 @@ import type { Coincidencia } from '../dominio/coincidencias';
 import { elegirLotes } from '../dominio/lotes';
 import { formatoCOP, normalizarNombre } from '../dominio/texto';
 import { db, TABLAS } from './db';
-import { cargarDatos, crear } from './repositorio';
+import { cargarDatos, crear, editar } from './repositorio';
 
 const enCurso = new WeakMap<Borrador, Promise<void>>();
 
@@ -99,7 +99,13 @@ async function guardarDentro(b: Borrador, e: Elecciones, usuarioId: string, dato
       const productoId = typeof rp === 'string' ? rp : await rp;
       const canastillas = i.unidad === 'canastilla' ? i.cantidad : e.canastillasDeEntrada!;
       const { costoTotal, costoDetalle } = costoDeEntrada(i.cantidad, i.unidad, i.costo);
-      await crear<Lote>('lotes', { productoId, canastillas, costoTotal, costoDetalle }, usuarioId);
+      const lote = await crear<Lote>('lotes', { productoId, canastillas, costoTotal, costoDetalle }, usuarioId);
+      // Canastillas de este producto vendidas antes de anotar la entrada: pasan a este lote.
+      for (const v of datos.ventas) {
+        if (!v.borrado && v.productoId === productoId && v.unidad === 'canastilla' && v.loteId === null) {
+          await editar<Venta>('ventas', v.id, { loteId: lote.id }, usuarioId);
+        }
+      }
       return;
     }
     case 'vaciado': {

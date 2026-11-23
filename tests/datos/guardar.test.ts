@@ -102,3 +102,13 @@ it('I1: si algo falla a mitad, no queda nada guardado', async () => {
   expect(d.clientes.map((c) => c.nombre)).toEqual(['Doña Marta']);
   expect(d.productos.map((p) => p.nombre)).toEqual(['mango criollo']);
 });
+
+it('al anotar la entrada, las ventas hechas antes sin lote pasan a ese lote', async () => {
+  await guardarBorrador(await borradorDe('Gonzalo compró 3 de criollo en 60 mil debe empacado'), elegir(), 'u1');
+  expect((await cargarDatos()).ventas[0].loteId).toBeNull();
+  await guardarBorrador(await borradorDe('entraron 50 canastillas de criollo'), elegir(), 'u1');
+  const d = await cargarDatos();
+  expect(d.ventas[0].loteId).toBe(d.lotes[0].id);
+  const { estadoLotes } = await import('../../src/dominio/lotes');
+  expect(estadoLotes(d.productos[0].id, d)[0].quedan).toBe(47);
+});

@@ -7,7 +7,8 @@ export interface Cierre {
   fiados: { clienteId: string; descripcion: string; total: number }[];
   totalFiado: number;
   abonos: number;
-  productos: { productoId: string; nombre: string; entraron: number; vendidas: number; vaciadas: number; quedan: number }[];
+  /** quedan = null cuando el producto no tiene ninguna entrada de mercancía anotada. */
+  productos: { productoId: string; nombre: string; entraron: number; vendidas: number; vaciadas: number; quedan: number | null }[];
   prestadasHoy: number;
   contado: number;
 }
@@ -36,7 +37,10 @@ export function resumenDia(fecha: string, datos: Datos): Cierre {
   }));
 
   const vaciadosHoy = delDia(datos.vaciados);
-  const productoIds = [...new Set(datos.lotes.filter((l) => !l.borrado).map((l) => l.productoId))];
+  const productoIds = [...new Set([
+    ...datos.lotes.filter((l) => !l.borrado).map((l) => l.productoId),
+    ...ventas.filter((v) => v.unidad === 'canastilla').map((v) => v.productoId),
+  ])];
   const productos = productoIds.map((productoId) => {
     const estados = estadoLotes(productoId, datos);
     const lotesIds = new Set(estados.map((e) => e.lote.id));
@@ -46,7 +50,7 @@ export function resumenDia(fecha: string, datos: Datos): Cierre {
       entraron: estados.filter((e) => fechaBogota(e.lote.creadoEn) === fecha).reduce((s, e) => s + e.lote.canastillas, 0),
       vendidas: ventas.filter((v) => v.productoId === productoId && v.unidad === 'canastilla').reduce((s, v) => s + v.cantidad, 0),
       vaciadas: vaciadosHoy.filter((x) => lotesIds.has(x.loteId)).reduce((s, x) => s + x.cantidad, 0),
-      quedan: estados.reduce((s, e) => s + e.quedan, 0),
+      quedan: estados.length === 0 ? null : estados.reduce((s, e) => s + e.quedan, 0),
     };
   });
 
