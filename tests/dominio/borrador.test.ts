@@ -99,3 +99,10 @@ describe('revisarElecciones', () => {
     expect(listoParaGuardar(r.borrador, { ...sinElegir, prestada: { 0: false } })).toBe(true);
   });
 });
+
+it('"criollo" en una venta usa "mango criollo" sin preguntar', () => {
+  const r = prepararBorrador(frase('Marta compró 1 de criollo a 45.000 pagó empacado'), datos());
+  if (!r.ok) throw new Error(r.error);
+  expect(r.borrador.lineas[0].producto).toEqual({ tipo: 'exacta', id: 'mango', nombre: 'mango criollo' });
+  expect(listoParaGuardar(r.borrador, sinElegir)).toBe(true);
+});

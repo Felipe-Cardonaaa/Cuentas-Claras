@@ -49,3 +49,21 @@ export function nombreDisponible(nombre: string, catalogo: { nombreNormalizado: 
   const n = normalizarNombre(nombre);
   return !catalogo.some((c) => c.nombreNormalizado === n);
 }
+
+/**
+ * Para productos: si lo escrito son palabras completas de un solo producto ("criollo" → "mango criollo",
+ * o "mango criollo" → "criollo"), se toma ese producto sin preguntar. Si coincide con varios, se pregunta.
+ */
+export function buscarProducto(escrito: string, catalogo: Entrada[]): Coincidencia {
+  const n = normalizarNombre(escrito);
+  const exacta = catalogo.find((c) => c.nombreNormalizado === n);
+  if (exacta) return { tipo: 'exacta', id: exacta.id, nombre: exacta.nombre };
+  const palabras = n.split(' ');
+  const contiene = (a: string[], b: string[]) => a.every((p) => b.includes(p));
+  const candidatos = catalogo.filter((c) => {
+    const otras = c.nombreNormalizado.split(' ');
+    return contiene(palabras, otras) || contiene(otras, palabras);
+  });
+  if (candidatos.length === 1) return { tipo: 'exacta', id: candidatos[0].id, nombre: candidatos[0].nombre };
+  return buscarCoincidencia(escrito, catalogo);
+}

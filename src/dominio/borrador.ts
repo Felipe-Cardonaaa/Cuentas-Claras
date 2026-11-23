@@ -1,6 +1,6 @@
 import type { Datos, Estado } from './tipos';
 import type { Intencion, ItemFrase } from './parser';
-import { buscarCoincidencia, type Coincidencia } from './coincidencias';
+import { buscarCoincidencia, buscarProducto, type Coincidencia } from './coincidencias';
 import { elegirLotes, estadoLotes } from './lotes';
 import { estadoCuenta, validarAbono } from './fiados';
 import { prestadasCliente, validarDevolucion } from './canastillas';
@@ -67,7 +67,7 @@ export function prepararBorrador(intencion: Intencion, datos: Datos): ResultadoB
     case 'venta': {
       b.cliente = intencion.cliente === null ? null : buscarCoincidencia(intencion.cliente, clientes);
       b.lineas = intencion.items.map((item) => {
-        const producto = buscarCoincidencia(item.producto, productos);
+        const producto = buscarProducto(item.producto, productos);
         const id = idDe(producto);
         let partes: LineaBorrador['partes'] = [{ loteId: null, cantidad: item.cantidad }];
         if (item.unidad === 'canastilla' && id) {
@@ -116,13 +116,13 @@ export function prepararBorrador(intencion: Intencion, datos: Datos): ResultadoB
     }
 
     case 'entrada': {
-      b.productos = [buscarCoincidencia(intencion.producto, productos)];
+      b.productos = [buscarProducto(intencion.producto, productos)];
       b.pide.canastillasDeEntrada = intencion.unidad === 'kilo';
       return { ok: true, borrador: b };
     }
 
     case 'vaciado': {
-      const p = buscarCoincidencia(intencion.producto, productos);
+      const p = buscarProducto(intencion.producto, productos);
       if (p.tipo === 'nueva') return fallo(`No conozco el producto "${p.escrito}"`);
       b.productos = [p];
       const r = elegirLotes(p.id, intencion.cantidad, datos);

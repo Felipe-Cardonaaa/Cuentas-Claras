@@ -156,3 +156,15 @@ describe('frases reales del puesto (iPad de Felipe)', () => {
     expect(parsearFrase('Orlando compró 3 canastillas de criollo a 60.000 c/u debe')).toMatchObject(venta(60000, 'debe', 'criollo'));
   });
 });
+
+describe('unidad opcional', () => {
+  it('"3 de criollo" sin decir canastillas = 3 canastillas', () => {
+    expect(parsearFrase('Gonzalo compro 3 de criollo en 60 mil, debe')).toMatchObject({
+      ok: true, intencion: { cliente: 'Gonzalo', estado: 'debe', items: [{ cantidad: 3, unidad: 'canastilla', producto: 'criollo', precioUnitario: 60000 }] },
+    });
+  });
+  it('canastas = canastillas y kilos son otra cosa', () => {
+    expect(parsearFrase('Gonzalo compro 3 canastas de criollo a 60 mil debe')).toMatchObject({ ok: true, intencion: { items: [{ unidad: 'canastilla' }] } });
+    expect(parsearFrase('Gonzalo compro 3 kilos de criollo a 4 mil debe')).toMatchObject({ ok: true, intencion: { items: [{ unidad: 'kilo' }] } });
+  });
+});

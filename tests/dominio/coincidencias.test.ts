@@ -1,4 +1,4 @@
-import { buscarCoincidencia, nombreDisponible } from '../../src/dominio/coincidencias';
+import { buscarCoincidencia, buscarProducto, nombreDisponible } from '../../src/dominio/coincidencias';
 
 const cat = [
   { id: 'c1', nombre: 'Doña Marta', nombreNormalizado: 'marta' },
@@ -36,4 +36,26 @@ describe('nombreDisponible', () => {
 it('"criollo" se parece a "mango criollo" (palabra completa)', () => {
   const prods = [{ id: 'p1', nombre: 'mango criollo', nombreNormalizado: 'mango criollo' }];
   expect(buscarCoincidencia('criollo', prods)).toMatchObject({ tipo: 'parecida', id: 'p1' });
+});
+
+describe('productos por palabra', () => {
+  const mangos = [
+    { id: 'c', nombre: 'mango criollo', nombreNormalizado: 'mango criollo' },
+    { id: 't', nombre: 'mango tommy', nombreNormalizado: 'mango tommy' },
+    { id: 'f', nombre: 'mango farchin', nombreNormalizado: 'mango farchin' },
+  ];
+  it('"criollo", "tommy" y "farchin" se reconocen solos', () => {
+    expect(buscarProducto('criollo', mangos)).toEqual({ tipo: 'exacta', id: 'c', nombre: 'mango criollo' });
+    expect(buscarProducto('Tommy', mangos)).toEqual({ tipo: 'exacta', id: 't', nombre: 'mango tommy' });
+    expect(buscarProducto('farchin', mangos)).toEqual({ tipo: 'exacta', id: 'f', nombre: 'mango farchin' });
+  });
+  it('al revés: "mango criollo" encuentra "criollo"', () => {
+    expect(buscarProducto('mango criollo', [{ id: 'c', nombre: 'criollo', nombreNormalizado: 'criollo' }])).toEqual({ tipo: 'exacta', id: 'c', nombre: 'criollo' });
+  });
+  it('"mango" a secas es ambiguo: pregunta', () => {
+    expect(buscarProducto('mango', mangos).tipo).toBe('parecida');
+  });
+  it('a los clientes no se les aplica: "Marta" no se vuelve "Marta Ruiz" sin preguntar', () => {
+    expect(buscarCoincidencia('Marta', [{ id: 'r', nombre: 'Marta Ruiz', nombreNormalizado: 'marta ruiz' }]).tipo).toBe('parecida');
+  });
 });
