@@ -4,7 +4,7 @@ import type { Cliente, Datos, Devolucion, Usuario } from '../../dominio/tipos';
 import type { Tabla } from '../../datos/db';
 import { db } from '../../datos/db';
 import type { Conflicto } from '../../sync/sincronizar';
-import { estadoCuenta, type LineaCuenta } from '../../dominio/fiados';
+import { deudores, estadoCuenta, type LineaCuenta } from '../../dominio/fiados';
 import { prestadasCliente } from '../../dominio/canastillas';
 import { describirVenta } from '../../dominio/cierre';
 import { fechaBogota, formatoCOP, horaBogota, normalizarNombre } from '../../dominio/texto';
@@ -40,6 +40,7 @@ export default function Clientes({ usuario, anotarCon }: Props) {
   const [verTodo, setVerTodo] = useState(false);
   const [abierta, setAbierta] = useState<LineaCuenta | null>(null);
   const [devolucionAbierta, setDevolucionAbierta] = useState<Devolucion | null>(null);
+  const [orden, setOrden] = useState<'monto' | 'antiguedad'>('monto');
 
   const q = normalizarNombre(busqueda);
   const vivos = datos?.clientes.filter((c) => !c.borrado) ?? [];
@@ -58,6 +59,13 @@ export default function Clientes({ usuario, anotarCon }: Props) {
       <label htmlFor="buscar" className="suave">Buscar por nombre</label>
       <input id="buscar" value={busqueda} autoComplete="off"
         onChange={(e) => { setBusqueda(e.target.value); setElegidoId(null); setAbierta(null); setDevolucionAbierta(null); setVerTodo(false); }} />
+
+      {!q && !elegido && datos && <QuienMeDebe datos={datos} orden={orden} cambiarOrden={setOrden} elegir={setElegidoId} />}
+      {!q && elegido && (
+        <button type="button" className="enlace" style={{ alignSelf: 'flex-start' }} onClick={() => { setElegidoId(null); setAbierta(null); setDevolucionAbierta(null); }}>
+          ← Volver a la lista
+        </button>
+      )}
 
       {!elegido && encontrados.length > 1 && (
         <div className="lista-usuarios">
@@ -154,4 +162,49 @@ export default function Clientes({ usuario, anotarCon }: Props) {
 function findRegistro(datos: Datos, l: LineaCuenta) {
   if (l.tipo === 'abono') return datos.abonos.find((a) => a.id === l.id);
   return datos.saldosIniciales.find((s) => s.id === l.id);
+}
+
+function diasDesde(iso: string): string {
+  const dias = Math.floor((Date.parse(fechaBogota(new Date().toISOString())) - Date.parse(fechaBogota(iso))) / 86_400_000);
+  if (dias <= 0) return 'hoy';
+  if (dias === 1) return 'hace 1 día';
+  return `hace ${dias} días`;
+}
+
+function QuienMeDebe({ datos, orden, cambiarOrden, elegir }: {
+  datos: Datos; orden: 'monto' | 'antiguedad'; cambiarOrden: (o: 'monto' | 'antiguedad') => void; elegir: (id: string) => void;
+}) {
+  const lista = deudores(datos, orden);
+  const total = lista.reduce((s, d) => s + d.saldo, 0);
+  return (
+    <section className="tarjeta" aria-label="¿Quién me debe?">
+      <div className="linea-arriba">
+        <span className="grande negrita">¿Quién me debe?</span>
+        <span className="etiqueta deuda">{lista.length}</span>
+      </div>
+      <span className="negrita">Total que les deben: {formatoCOP(total)}</span>
+      <div className="dos">
+        <button type="button" aria-pressed={orden === 'monto'} className={orden === 'monto' ? 'opcion activa' : 'opcion'} onClick={() => cambiarOrden('monto')}>Más deuda</button>
+        <button type="button" aria-pressed={orden === 'antiguedad'} className={orden === 'antiguedad' ? 'opcion activa' : 'opcion'} onClick={() => cambiarOrden('antiguedad')}>Más antigua</button>
+      </div>
+      {lista.length === 0 ? <p className="suave">Nadie debe nada.</p> : (
+        <ul className="lista">
+          {lista.map((d) => (
+            <li key={d.clienteId}>
+              <button type="button" className="linea-boton" onClick={() => elegir(d.clienteId)}>
+                <span className="linea-arriba">
+                  <span className="negrita">{d.nombre}</span>
+                  <span className="texto-deuda">{formatoCOP(d.saldo)}</span>
+                </span>
+                <span className="linea-abajo">
+                  <span>Debe desde el {fechaBogota(d.desde).slice(5).split('-').reverse().join('/')}</span>
+                  <span>{diasDesde(d.desde)}</span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
 }

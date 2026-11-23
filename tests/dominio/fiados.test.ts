@@ -1,5 +1,5 @@
-import { estadoCuenta, validarAbono } from '../../src/dominio/fiados';
-import { abono, datosVacios, saldoInicial, venta } from '../fabrica';
+import { deudores, estadoCuenta, validarAbono } from '../../src/dominio/fiados';
+import { abono, cliente, datosVacios, saldoInicial, venta } from '../fabrica';
 
 const fiada = (total: number, creadoEn: string) =>
   venta({ clienteId: 'm', productoId: 'p', cantidad: 1, precioUnitario: total, estado: 'debe', creadoEn });
@@ -67,4 +67,27 @@ it('revisión final: plata redondeada a pesos, sin "debe" fantasma', () => {
   const d2 = datosVacios();
   d2.ventas.push(venta({ clienteId: 'm', productoId: 'p', unidad: 'kilo', cantidad: 1.1, precioUnitario: 3000, estado: 'debe' }));
   expect(Number.isInteger(estadoCuenta('m', d2).saldo)).toBe(true);
+});
+
+describe('deudores', () => {
+  function tres() {
+    const d = datosVacios();
+    d.clientes.push(cliente('a', 'Ana', 'ana'), cliente('b', 'Beto', 'beto'), cliente('c', 'Carla', 'carla'));
+    d.ventas.push(
+      venta({ clienteId: 'a', productoId: 'p', cantidad: 1, precioUnitario: 20000, estado: 'debe', creadoEn: '2026-11-15T14:00:00Z' }),
+      venta({ clienteId: 'b', productoId: 'p', cantidad: 1, precioUnitario: 90000, estado: 'debe', creadoEn: '2026-11-17T14:00:00Z' }),
+      venta({ clienteId: 'c', productoId: 'p', cantidad: 1, precioUnitario: 50000, estado: 'debe', creadoEn: '2026-11-10T14:00:00Z' }),
+    );
+    d.abonos.push(abono('c', 50000, '2026-11-11T14:00:00Z'));
+    return d;
+  }
+  it('solo los que deben, de mayor a menor deuda, con la fecha de la deuda pendiente más vieja', () => {
+    expect(deudores(tres(), 'monto')).toEqual([
+      { clienteId: 'b', nombre: 'Beto', saldo: 90000, desde: '2026-11-17T14:00:00Z' },
+      { clienteId: 'a', nombre: 'Ana', saldo: 20000, desde: '2026-11-15T14:00:00Z' },
+    ]);
+  });
+  it('ordenados por la deuda más vieja', () => {
+    expect(deudores(tres(), 'antiguedad').map((x) => x.nombre)).toEqual(['Ana', 'Beto']);
+  });
 });

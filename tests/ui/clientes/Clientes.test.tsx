@@ -53,3 +53,21 @@ it('I8: las devoluciones se pueden ver y corregir', async () => {
   await userEvent.click(await screen.findByRole('button', { name: /Devolvió 1 canastilla/ }));
   expect(await screen.findByLabelText('Cantidad')).toHaveValue('1');
 });
+
+it('¿Quién me debe?: lista con total, orden y acceso al cliente', async () => {
+  const p = (await db.productos.toArray())[0];
+  const luz = await crear<Cliente>('clientes', { nombre: 'Luz', nombreNormalizado: '' }, 'u1');
+  await crear<Venta>('ventas', {
+    grupoId: 'z', clienteId: luz.id, loteId: null, unidad: 'canastilla', estado: 'debe', productoId: p.id, cantidad: 2, precioUnitario: 40000, prestada: false,
+  }, 'u1');
+  render(<Clientes usuario={usuario} anotarCon={() => {}} />);
+  const lista = await screen.findByLabelText('¿Quién me debe?');
+  expect(within(lista).getByText('Total que les deben: $130.000')).toBeInTheDocument();
+  const nombres = within(lista).getAllByRole('button', { name: /\$/ }).map((b) => b.textContent);
+  expect(nombres[0]).toMatch(/Luz.*\$80\.000/);
+  expect(nombres[1]).toMatch(/Doña Marta.*\$50\.000/);
+  await userEvent.click(within(lista).getByRole('button', { name: 'Más antigua' }));
+  expect(within(lista).getAllByRole('button', { name: /\$/ })[0].textContent).toMatch(/Doña Marta/);
+  await userEvent.click(within(lista).getAllByRole('button', { name: /Luz/ })[0]);
+  expect(await screen.findByLabelText('Resumen del cliente')).toHaveTextContent('Luz');
+});

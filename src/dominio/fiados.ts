@@ -61,3 +61,18 @@ export function validarAbono(valor: number, saldo: number): string | null {
   if (valor > saldo) return `El abono es mayor que la deuda. Debe ${formatoCOP(saldo)}`;
   return null;
 }
+
+export interface Deudor { clienteId: string; nombre: string; saldo: number; desde: string }
+
+/** Clientes con saldo pendiente. "desde" es la fecha de su deuda pendiente más vieja. */
+export function deudores(datos: Datos, orden: 'monto' | 'antiguedad'): Deudor[] {
+  const lista: Deudor[] = [];
+  for (const c of datos.clientes) {
+    if (c.borrado) continue;
+    const cuenta = estadoCuenta(c.id, datos);
+    if (!cuenta.debe) continue;
+    const masVieja = cuenta.todas.find((l) => l.tipo !== 'abono' && l.debe);
+    lista.push({ clienteId: c.id, nombre: c.nombre, saldo: cuenta.saldo, desde: masVieja?.fecha ?? '' });
+  }
+  return lista.sort((a, b) => (orden === 'monto' ? b.saldo - a.saldo : a.desde.localeCompare(b.desde)));
+}
