@@ -1,4 +1,5 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Cierre from '../../../src/ui/cierre/Cierre';
 import { db } from '../../../src/datos/db';
 import { crear } from '../../../src/datos/repositorio';
@@ -30,7 +31,7 @@ it('resume el día', async () => {
   expect(screen.getAllByText('$100.000').length).toBeGreaterThan(0);
   expect(screen.getByText('Pagado')).toBeInTheDocument();
   expect(screen.getByText('Debe $32.000')).toBeInTheDocument();
-  expect(screen.getByText('Doña Marta · 2 canast. mango criollo')).toBeInTheDocument();
+  expect(within(screen.getByLabelText('Fiados del día')).getByText('Doña Marta · 2 canast. mango criollo')).toBeInTheDocument();
   const fila = screen.getByRole('row', { name: /mango criollo/ });
   expect(within(fila).getAllByRole('cell').map((c) => c.textContent)).toEqual(['mango criollo', '50', '45', '0', '5']);
 });
@@ -54,4 +55,15 @@ it('muestra las listas Pagaron hoy y Quedaron debiendo', async () => {
   const deben = screen.getByLabelText('Quedaron debiendo');
   expect(within(deben).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Don Pedro$32.000']);
   expect(within(deben).queryByText('Doña Marta')).not.toBeInTheDocument();
+});
+
+it('Ventas del día: se puede abrir cualquier venta y borrarla', async () => {
+  const usuario = { id: 'u1', nombre: 'Carlos' } as never;
+  render(<Cierre usuario={usuario} />);
+  const lista = await screen.findByLabelText('Ventas del día');
+  await userEvent.click(within(lista).getByRole('button', { name: /Cliente de paso · 43 canast\. mango criollo/ }));
+  await userEvent.click(await screen.findByRole('button', { name: 'Borrar' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Sí, borrar' }));
+  const despues = await screen.findByLabelText('Ventas del día');
+  await waitFor(() => expect(within(despues).queryByRole('button', { name: /43 canast/ })).not.toBeInTheDocument());
 });

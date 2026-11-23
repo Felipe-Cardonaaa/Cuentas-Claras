@@ -28,7 +28,7 @@ export interface Elecciones {
   estado?: Estado;
   prestada: Record<number, boolean>;
   canastillasDeEntrada?: number;
-  resolver: Record<string, 'usarParecido' | 'crearNuevo'>;
+  resolver: Record<string, 'usarParecido' | 'crearNuevo' | 'usarSugerencia'>;
 }
 
 export type ResultadoBorrador = { ok: true; borrador: Borrador } | { ok: false; error: string };
@@ -165,6 +165,7 @@ export function listoParaGuardar(b: Borrador, e: Elecciones): boolean {
   if (b.pide.canastillasDeEntrada && !(e.canastillasDeEntrada && e.canastillasDeEntrada > 0)) return false;
   if (b.cliente?.tipo === 'parecida' && !e.resolver.cliente) return false;
   const coincidenciasProducto = b.intencion.tipo === 'venta' ? b.lineas.map((l) => l.producto) : b.productos;
-  if (coincidenciasProducto.some((c, n) => c.tipo === 'parecida' && !e.resolver[`producto:${n}`])) return false;
+  const hayQuePreguntar = (c: Coincidencia) => c.tipo === 'parecida' || (c.tipo === 'nueva' && !!c.sugerencia);
+  if (coincidenciasProducto.some((c, n) => hayQuePreguntar(c) && !e.resolver[`producto:${n}`])) return false;
   return revisarElecciones(b, e) === null;
 }

@@ -15,9 +15,24 @@ interface Props {
 const nombre = (c: Coincidencia) => (c.tipo === 'nueva' ? c.escrito : c.nombre);
 
 function Pregunta({ c, clave, tipo, e, cambiar }: { c: Coincidencia; clave: string; tipo: 'cliente' | 'producto'; e: Elecciones; cambiar: (e: Elecciones) => void }) {
-  if (c.tipo !== 'parecida') return null;
   const elegido = e.resolver[clave];
-  const elegir = (v: 'usarParecido' | 'crearNuevo') => cambiar({ ...e, resolver: { ...e.resolver, [clave]: v } });
+  const elegir = (v: 'usarParecido' | 'crearNuevo' | 'usarSugerencia') => cambiar({ ...e, resolver: { ...e.resolver, [clave]: v } });
+  if (c.tipo === 'nueva' && c.sugerencia) {
+    return (
+      <div className="pregunta">
+        <p>¿Quisiste decir <strong>{c.sugerencia}</strong>? (escribiste "{c.escrito}")</p>
+        <div className="dos">
+          <button type="button" aria-pressed={elegido === 'usarSugerencia'} className={elegido === 'usarSugerencia' ? 'opcion activa' : 'opcion'} onClick={() => elegir('usarSugerencia')}>
+            Sí, {c.sugerencia}
+          </button>
+          <button type="button" aria-pressed={elegido === 'crearNuevo'} className={elegido === 'crearNuevo' ? 'opcion activa' : 'opcion'} onClick={() => elegir('crearNuevo')}>
+            No, dejar "{c.escrito}"
+          </button>
+        </div>
+      </div>
+    );
+  }
+  if (c.tipo !== 'parecida') return null;
   return (
     <div className="pregunta">
       <p>No conozco {tipo === 'cliente' ? 'a' : 'el producto'} "{c.escrito}". ¿Quisiste decir <strong>{c.nombre}</strong>?</p>

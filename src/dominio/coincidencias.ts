@@ -3,7 +3,7 @@ import { normalizarNombre } from './texto';
 export type Coincidencia =
   | { tipo: 'exacta'; id: string; nombre: string }
   | { tipo: 'parecida'; id: string; nombre: string; escrito: string }
-  | { tipo: 'nueva'; escrito: string };
+  | { tipo: 'nueva'; escrito: string; sugerencia?: string };
 
 interface Entrada { id: string; nombre: string; nombreNormalizado: string }
 
@@ -50,20 +50,63 @@ export function nombreDisponible(nombre: string, catalogo: { nombreNormalizado: 
   return !catalogo.some((c) => c.nombreNormalizado === n);
 }
 
-/**
- * Para productos: si lo escrito son palabras completas de un solo producto ("criollo" → "mango criollo",
- * o "mango criollo" → "criollo"), se toma ese producto sin preguntar. Si coincide con varios, se pregunta.
- */
-export function buscarProducto(escrito: string, catalogo: Entrada[]): Coincidencia {
-  const n = normalizarNombre(escrito);
+/** Palabras comunes de productos de la plaza, para detectar errores de escritura desde el primer día. */
+const DICCIONARIO = [
+  'mango', 'criollo', 'tommy', 'farchin', 'keitt', 'kent', 'azucar', 'hilacha', 'mandarina', 'naranja', 'limon', 'tahiti',
+  'zapote', 'aguacate', 'hass', 'papaya', 'maradol', 'pina', 'oro', 'guayaba', 'maracuya', 'granadilla', 'gulupa', 'lulo',
+  'mora', 'fresa', 'uchuva', 'tomate', 'arbol', 'chonto', 'cebolla', 'cabezona', 'larga', 'papa', 'criolla', 'pastusa',
+  'sabanera', 'platano', 'banano', 'guineo', 'pera', 'manzana', 'uva', 'sandia', 'melon', 'coco', 'pitahaya', 'curuba',
+  'tamarillo', 'mamey', 'borojo', 'feijoa', 'ciruela', 'durazno', 'yuca', 'arracacha', 'zanahoria', 'pepino', 'pimenton',
+  'cilantro', 'ahuyama', 'habichuela', 'arveja', 'frijol', 'mazorca', 'repollo', 'lechuga', 'remolacha', 'aji', 'ajo',
+  'jengibre', 'roja', 'rojo', 'verde', 'amarilla', 'amarillo', 'grande', 'pequeno', 'maduro', 'madura', 'biche', 'tierno',
+];
+
+const contiene = (a: string[], b: string[]) => a.every((p) => b.includes(p));
+
+function buscarPorPalabras(n: string, catalogo: Entrada[]): Coincidencia | null {
   const exacta = catalogo.find((c) => c.nombreNormalizado === n);
   if (exacta) return { tipo: 'exacta', id: exacta.id, nombre: exacta.nombre };
   const palabras = n.split(' ');
-  const contiene = (a: string[], b: string[]) => a.every((p) => b.includes(p));
   const candidatos = catalogo.filter((c) => {
     const otras = c.nombreNormalizado.split(' ');
     return contiene(palabras, otras) || contiene(otras, palabras);
   });
   if (candidatos.length === 1) return { tipo: 'exacta', id: candidatos[0].id, nombre: candidatos[0].nombre };
+  return null;
+}
+
+/** Cambia cada palabra mal escrita por la palabra conocida más cercana. Devuelve el texto igual si no hay nada que corregir. */
+export function corregirPalabras(n: string, vocabulario: Set<string>): string {
+  return n.split(' ').map((p) => {
+    if (p.length < 4 || vocabulario.has(p)) return p;
+    let mejor: { palabra: string; d: number } | null = null;
+    for (const v of vocabulario) {
+      const d = distancia(p, v);
+      if (d <= Math.floor(p.length / 2) && d <= 2 && (!mejor || d < mejor.d)) mejor = { palabra: v, d };
+    }
+    return mejor?.palabra ?? p;
+  }).join(' ');
+}
+
+/**
+ * Para productos:
+ * - si lo escrito son palabras completas de un solo producto ("criollo" → "mango criollo", o al revés), se toma sin preguntar;
+ * - si tiene un error de escritura ("mayo criollo", "mandarna"), propone la corrección (¿Quisiste decir…?);
+ * - si coincide con varios, se pregunta.
+ */
+export function buscarProducto(escrito: string, catalogo: Entrada[]): Coincidencia {
+  const n = normalizarNombre(escrito);
+  const directa = buscarPorPalabras(n, catalogo);
+  if (directa) return directa;
+
+  const vocabulario = new Set([...DICCIONARIO, ...catalogo.flatMap((c) => c.nombreNormalizado.split(' '))]);
+  const corregido = corregirPalabras(n, vocabulario);
+  if (corregido !== n) {
+    const conocida = buscarPorPalabras(corregido, catalogo) ?? buscarCoincidencia(corregido, catalogo);
+    if (conocida.tipo !== 'nueva') return { tipo: 'parecida', id: conocida.id, nombre: conocida.nombre, escrito };
+    const parecida = buscarCoincidencia(escrito, catalogo);
+    if (parecida.tipo === 'parecida') return parecida;
+    return { tipo: 'nueva', escrito, sugerencia: corregido };
+  }
   return buscarCoincidencia(escrito, catalogo);
 }

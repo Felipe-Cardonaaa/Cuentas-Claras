@@ -1,12 +1,28 @@
 import { useState } from 'react';
-import { resumenDia } from '../../dominio/cierre';
+import { describirVenta, resumenDia } from '../../dominio/cierre';
+import type { Usuario, Venta } from '../../dominio/tipos';
+import Historial from '../comun/Historial';
 import { fechaBogota, formatoCOP } from '../../dominio/texto';
-import { useDatos } from '../useDatos';
+import { useDatos, useNombresUsuarios } from '../useDatos';
+import { horaBogota } from '../../dominio/texto';
 
-export default function Cierre() {
+export default function Cierre({ usuario }: { usuario?: Usuario }) {
   const datos = useDatos();
+  const nombres = useNombresUsuarios();
   const [fecha, setFecha] = useState(() => fechaBogota(new Date().toISOString()));
+  const [abierta, setAbierta] = useState<Venta | null>(null);
   if (!datos) return null;
+  const nombreProducto = (id: string) => datos.productos.find((p) => p.id === id)?.nombre ?? '';
+  const tituloVenta = (v: Venta) =>
+    `${v.clienteId ? (datos.clientes.find((x) => x.id === v.clienteId)?.nombre ?? '—') : 'Cliente de paso'} · ${describirVenta(v, nombreProducto(v.productoId))}`;
+  if (abierta && usuario) {
+    return (
+      <div className="contenido">
+        <Historial tabla="ventas" registro={abierta as never} titulo={tituloVenta(abierta)} usuario={usuario} nombres={nombres} alCerrar={() => setAbierta(null)} />
+      </div>
+    );
+  }
+  const ventasDelDia = datos.ventas.filter((v) => !v.borrado && fechaBogota(v.creadoEn) === fecha);
   const c = resumenDia(fecha, datos);
   const cliente = (id: string) => datos.clientes.find((x) => x.id === id)?.nombre ?? '—';
 
@@ -91,6 +107,29 @@ export default function Cierre() {
           </p>
         )}
         {c.productos.length === 0 && <p className="suave">Hoy no se movieron canastillas.</p>}
+      </section>
+
+      <section className="tarjeta" aria-label="Ventas del día">
+        <span className="negrita">Ventas del día</span>
+        <span className="suave" style={{ fontSize: 14 }}>Toca una venta para corregirla o borrarla.</span>
+        {ventasDelDia.length === 0 ? <span className="suave">No hay ventas anotadas.</span> : (
+          <ul className="lista">
+            {ventasDelDia.map((v) => (
+              <li key={v.id}>
+                <button type="button" className="linea-boton" disabled={!usuario} onClick={() => setAbierta(v)}>
+                  <span className="linea-arriba">
+                    <span>{tituloVenta(v)}</span>
+                    <span className="negrita">{formatoCOP(Math.round(v.cantidad * v.precioUnitario))}</span>
+                  </span>
+                  <span className="linea-abajo">
+                    <span>{horaBogota(v.creadoEn)} · anotó {nombres[v.creadoPor] ?? '—'}</span>
+                    <span className={v.estado === 'debe' ? 'texto-deuda' : 'texto-pagado'}>{v.estado === 'debe' ? 'Fiado' : 'Pagó'}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="tarjeta" aria-label="Vendido de contado">

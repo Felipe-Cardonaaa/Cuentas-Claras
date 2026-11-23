@@ -51,7 +51,7 @@ export default function App() {
         {pantalla === 'anotar' && <Anotar usuario={usuario} fraseInicial={frase} />}
         {pantalla === 'clientes' && <Clientes usuario={usuario} anotarCon={anotarCon} />}
         {pantalla === 'lotes' && <Lotes usuario={usuario} anotarCon={anotarCon} />}
-        {pantalla === 'cierre' && <Cierre />}
+        {pantalla === 'cierre' && <Cierre usuario={usuario} />}
       </main>
       <Navegacion actual={pantalla} ir={(p) => { setFrase(''); setPantalla(p); }} />
     </div>

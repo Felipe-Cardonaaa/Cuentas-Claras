@@ -52,3 +52,11 @@ it('pregunta por el nombre parecido', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
   await waitFor(async () => expect((await cargarDatos()).clientes).toHaveLength(1));
 });
+
+it('propone la palabra correcta si hay un error de escritura', async () => {
+  await escribirYRevisar('Marta compró 3 kilos de mandarna a 4.000 debe');
+  expect(await screen.findByText(/¿Quisiste decir/)).toHaveTextContent('mandarina');
+  await userEvent.click(screen.getByRole('button', { name: 'Sí, mandarina' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+  await waitFor(async () => expect((await cargarDatos()).productos.map((p) => p.nombre)).toContain('mandarina'));
+});

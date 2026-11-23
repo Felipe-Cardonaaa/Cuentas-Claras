@@ -112,3 +112,10 @@ it('al anotar la entrada, las ventas hechas antes sin lote pasan a ese lote', as
   const { estadoLotes } = await import('../../src/dominio/lotes');
   expect(estadoLotes(d.productos[0].id, d)[0].quedan).toBe(47);
 });
+
+it('"Sí, quise decir…" crea el producto con el nombre corregido', async () => {
+  await crear<Cliente>('clientes', { nombre: 'Marta', nombreNormalizado: '' }, 'u1');
+  const b = await borradorDe('Marta compró 3 kilos de mandarna a 4.000 debe');
+  await guardarBorrador(b, elegir({ resolver: { 'producto:0': 'usarSugerencia' } }), 'u1');
+  expect((await cargarDatos()).productos.map((p) => p.nombre)).toEqual(['mandarina']);
+});

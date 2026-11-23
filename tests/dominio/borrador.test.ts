@@ -106,3 +106,14 @@ it('"criollo" en una venta usa "mango criollo" sin preguntar', () => {
   expect(r.borrador.lineas[0].producto).toEqual({ tipo: 'exacta', id: 'mango', nombre: 'mango criollo' });
   expect(listoParaGuardar(r.borrador, sinElegir)).toBe(true);
 });
+
+it('con sugerencia de escritura hay que elegir antes de guardar', () => {
+  const d = datosVacios();
+  d.clientes.push(cliente('m', 'Marta', 'marta'));
+  const r = prepararBorrador(frase('Marta compró 3 kilos de mandarna a 4.000 debe'), d);
+  if (!r.ok) throw new Error(r.error);
+  expect(r.borrador.lineas[0].producto).toMatchObject({ tipo: 'nueva', sugerencia: 'mandarina' });
+  expect(listoParaGuardar(r.borrador, sinElegir)).toBe(false);
+  expect(listoParaGuardar(r.borrador, { ...sinElegir, resolver: { 'producto:0': 'usarSugerencia' } })).toBe(true);
+  expect(listoParaGuardar(r.borrador, { ...sinElegir, resolver: { 'producto:0': 'crearNuevo' } })).toBe(true);
+});

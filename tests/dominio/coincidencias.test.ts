@@ -59,3 +59,24 @@ describe('productos por palabra', () => {
     expect(buscarCoincidencia('Marta', [{ id: 'r', nombre: 'Marta Ruiz', nombreNormalizado: 'marta ruiz' }]).tipo).toBe('parecida');
   });
 });
+
+describe('¿Quisiste decir…? (errores de escritura en productos)', () => {
+  it('corrige palabras contra frutas comunes aunque no haya productos', () => {
+    expect(buscarProducto('mayo criollo', [])).toEqual({ tipo: 'nueva', escrito: 'mayo criollo', sugerencia: 'mango criollo' });
+    expect(buscarProducto('mandarna', [])).toEqual({ tipo: 'nueva', escrito: 'mandarna', sugerencia: 'mandarina' });
+    expect(buscarProducto('aguacte hass', [])).toMatchObject({ sugerencia: 'aguacate hass' });
+  });
+  it('no sugiere nada si está bien escrito', () => {
+    expect(buscarProducto('zapote', [])).toEqual({ tipo: 'nueva', escrito: 'zapote' });
+    expect(buscarProducto('mango farchin', [])).toEqual({ tipo: 'nueva', escrito: 'mango farchin' });
+  });
+  it('si la corrección es un producto que ya existe, lo propone', () => {
+    const prods = [{ id: 'm', nombre: 'mandarina', nombreNormalizado: 'mandarina' }];
+    expect(buscarProducto('mandarna', prods)).toEqual({ tipo: 'parecida', id: 'm', nombre: 'mandarina', escrito: 'mandarna' });
+  });
+  it('aprende las palabras de los productos ya anotados', () => {
+    const prods = [{ id: 'g', nombre: 'gulupa', nombreNormalizado: 'gulupa' }];
+    expect(buscarProducto('gulupa roja', prods).tipo).toBe('exacta');
+    expect(buscarProducto('gulpa', prods)).toMatchObject({ tipo: 'parecida', id: 'g' });
+  });
+});

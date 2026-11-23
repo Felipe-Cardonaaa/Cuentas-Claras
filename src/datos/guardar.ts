@@ -35,7 +35,8 @@ function existente(c: Coincidencia, clave: string, e: Elecciones): string | null
 function resolver(c: Coincidencia, clave: string, e: Elecciones, tabla: 'clientes' | 'productos', usuarioId: string, creados: Creados): string | Promise<string> {
   const id = existente(c, clave, e);
   if (id) return id;
-  const nombre = (c as { escrito: string }).escrito;
+  const nueva = c as { escrito: string; sugerencia?: string };
+  const nombre = e.resolver[clave] === 'usarSugerencia' && nueva.sugerencia ? nueva.sugerencia : nueva.escrito;
   const llave = `${tabla}|${normalizarNombre(nombre)}`;
   const previo = creados.get(llave);
   if (previo) return previo;
