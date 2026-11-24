@@ -5,6 +5,7 @@ import { formatoCOP, horaBogota, parsearPrecio } from '../../dominio/texto';
 import { editar } from '../../datos/repositorio';
 import { useDatos, useNombresUsuarios } from '../useDatos';
 import Historial from '../comun/Historial';
+import EntradaMercancia from './EntradaMercancia';
 import type { Tabla } from '../../datos/db';
 
 interface Abierto { tabla: Tabla; registro: Record<string, unknown> & { id: string }; titulo: string }
@@ -80,7 +81,9 @@ export default function Lotes({ usuario, anotarCon }: Props) {
   const nombres = useNombresUsuarios();
   const [abiertos, setAbiertos] = useState<Record<string, boolean>>({});
   const [abierto, setAbierto] = useState<Abierto | null>(null);
+  const [entrando, setEntrando] = useState(false);
   if (!datos) return null;
+  if (entrando) return <EntradaMercancia usuario={usuario} alTerminar={() => setEntrando(false)} />;
   if (abierto) {
     return (
       <div className="contenido">
@@ -96,7 +99,7 @@ export default function Lotes({ usuario, anotarCon }: Props) {
     <div className="contenido">
       <div className="linea-arriba">
         <h2 className="titulo">Mercancía</h2>
-        <button type="button" className="boton principal" style={{ width: 'auto' }} onClick={() => anotarCon('entraron ')}>+ Entró mercancía</button>
+        <button type="button" className="boton principal" style={{ width: 'auto' }} onClick={() => setEntrando(true)}>+ Entró mercancía</button>
       </div>
       {productos.length === 0 && <p className="suave">Todavía no ha entrado mercancía.</p>}
       {productos.map(({ p, estados }) => {

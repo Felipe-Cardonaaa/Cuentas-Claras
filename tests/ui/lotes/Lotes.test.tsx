@@ -56,3 +56,43 @@ it('I8: se puede corregir el lote', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Guardar corrección' }));
   expect(await screen.findByText('45 de 60 vendidas')).toBeInTheDocument();
 });
+
+describe('formulario Entró mercancía', () => {
+  it('registra un lote en canastillas con costo total', async () => {
+    render(<Lotes usuario={usuario} anotarCon={() => { throw new Error('no debe ir a Anotar'); }} />);
+    await userEvent.click(await screen.findByRole('button', { name: '+ Entró mercancía' }));
+    const form = screen.getByRole('form', { name: 'Entró mercancía' });
+    await userEvent.type(within(form).getByLabelText('Producto'), 'mango tommy');
+    await userEvent.type(within(form).getByLabelText('Cantidad'), '40');
+    await userEvent.type(within(form).getByLabelText('Costo (opcional)'), '1.200.000');
+    await userEvent.click(within(form).getByRole('button', { name: 'Revisar' }));
+    expect(await screen.findByText('¿Guardar la mercancía que entró?')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    expect(await screen.findByText('0 de 40 vendidas')).toBeInTheDocument();
+    const d = await db.lotes.toArray();
+    expect(d.find((l) => l.canastillas === 40)).toMatchObject({ costoTotal: 1200000 });
+  });
+
+  it('en kilos pregunta en cuántas canastillas llegó', async () => {
+    render(<Lotes usuario={usuario} anotarCon={() => {}} />);
+    await userEvent.click(await screen.findByRole('button', { name: '+ Entró mercancía' }));
+    const form = screen.getByRole('form', { name: 'Entró mercancía' });
+    await userEvent.type(within(form).getByLabelText('Producto'), 'mandarina');
+    await userEvent.type(within(form).getByLabelText('Cantidad'), '200');
+    await userEvent.click(within(form).getByRole('button', { name: 'Kilos' }));
+    await userEvent.click(within(form).getByRole('button', { name: 'Revisar' }));
+    await userEvent.type(await screen.findByLabelText('¿En cuántas canastillas llegó?'), '8');
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    expect(await screen.findByText('0 de 8 vendidas')).toBeInTheDocument();
+  });
+
+  it('avisa si la cantidad no sirve', async () => {
+    render(<Lotes usuario={usuario} anotarCon={() => {}} />);
+    await userEvent.click(await screen.findByRole('button', { name: '+ Entró mercancía' }));
+    const form = screen.getByRole('form', { name: 'Entró mercancía' });
+    await userEvent.type(within(form).getByLabelText('Producto'), 'zapote');
+    await userEvent.type(within(form).getByLabelText('Cantidad'), '2,5');
+    await userEvent.click(within(form).getByRole('button', { name: 'Revisar' }));
+    expect(await screen.findByText('Las canastillas se cuentan enteras')).toBeInTheDocument();
+  });
+});
