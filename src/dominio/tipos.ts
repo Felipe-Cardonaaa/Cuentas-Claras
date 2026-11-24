@@ -33,6 +33,8 @@ export interface Vaciado extends Base { loteId: string; cantidad: number }
 export interface Abono extends Base { clienteId: string; valor: number }
 export interface SaldoInicial extends Base { clienteId: string; valor: number }
 export interface Devolucion extends Base { clienteId: string; cantidad: number }
+/** Ajustes del negocio que se comparten entre celulares (por ejemplo, la clave del cierre). */
+export interface Ajuste extends Base { valor: unknown }
 
 export interface Historial {
   id: string;

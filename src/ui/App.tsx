@@ -6,7 +6,7 @@ import Acceso from './acceso/Acceso';
 import Anotar from './anotar/Anotar';
 import Clientes from './clientes/Clientes';
 import Lotes from './lotes/Lotes';
-import Cierre from './cierre/Cierre';
+import CierreProtegido from './cierre/CierreProtegido';
 import Navegacion, { type Pantalla } from './Navegacion';
 
 function fechaLarga(): string {
@@ -62,7 +62,7 @@ export default function App() {
         {pantalla === 'anotar' && <Anotar usuario={usuario} fraseInicial={frase} />}
         {pantalla === 'clientes' && <Clientes usuario={usuario} anotarCon={anotarCon} />}
         {pantalla === 'lotes' && <Lotes usuario={usuario} anotarCon={anotarCon} />}
-        {pantalla === 'cierre' && <Cierre usuario={usuario} />}
+        {pantalla === 'cierre' && <CierreProtegido usuario={usuario} />}
       </main>
       <Navegacion actual={pantalla} ir={(p) => { setFrase(''); setPantalla(p); }} />
     </div>

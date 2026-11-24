@@ -176,3 +176,13 @@ it('I3: el mismo cliente creado sin señal en dos celulares se une en uno solo',
   expect([...s.tablas.ventas.values()][0].cliente_id).toBe('srv-marta');
   expect(await db.salida.count()).toBe(0);
 });
+
+it('si una tabla todavía no existe en el servidor, no traba lo demás', async () => {
+  const s = servidorFalso({ errorSubida: (t) => (t === 'ajustes' ? { code: 'PGRST205', message: 'Could not find the table public.ajustes' } : null) });
+  await db.salida.add({ tabla: 'ajustes' as never, registro: { id: 'clave-cierre' } });
+  await crear<Venta>('ventas', venta(), 'u1');
+  await sincronizar(s.cliente);
+  expect(s.tablas.ventas.size).toBe(1);
+  const quedan = await db.salida.toArray();
+  expect(quedan.map((f) => f.tabla)).toEqual(['ajustes']);
+});

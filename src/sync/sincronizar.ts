@@ -79,8 +79,10 @@ async function unirDuplicado(cliente: ClienteSync, fila: FilaSalida): Promise<bo
 
 async function subir(cliente: ClienteSync): Promise<number> {
   let subidos = 0;
+  // Filas de tablas que el servidor todavía no tiene (falta correr un SQL nuevo): se dejan para después sin trabar lo demás.
+  const saltadas = new Set<number>();
   for (;;) {
-    const fila = await db.salida.orderBy('orden').first();
+    const fila = await db.salida.orderBy('orden').filter((f) => !saltadas.has(f.orden!)).first();
     if (!fila) break;
     let error: ErrorRemoto | null;
     try {
@@ -90,6 +92,10 @@ async function subir(cliente: ClienteSync): Promise<number> {
     }
     if (error) {
       const codigo = error.code ?? '';
+      if (codigo === 'PGRST205' || codigo === '42P01') {
+        saltadas.add(fila.orden!);
+        continue;
+      }
       if (codigo === '23505' && (fila.tabla === 'clientes' || fila.tabla === 'productos')) {
         if (await unirDuplicado(cliente, fila)) continue;
         await apartar('conflictos', fila, error);

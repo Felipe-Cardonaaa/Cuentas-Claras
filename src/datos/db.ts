@@ -1,12 +1,12 @@
 import Dexie, { type Table } from 'dexie';
 import type {
-  Abono, Cliente, Devolucion, Historial, Lote, Producto, SaldoInicial, Usuario, Vaciado, Venta,
+  Abono, Ajuste, Cliente, Devolucion, Historial, Lote, Producto, SaldoInicial, Usuario, Vaciado, Venta,
 } from '../dominio/tipos';
 
 export type Tabla =
-  | 'usuarios' | 'clientes' | 'productos' | 'lotes' | 'ventas' | 'vaciados' | 'abonos' | 'saldosIniciales' | 'devoluciones';
+  | 'usuarios' | 'clientes' | 'productos' | 'lotes' | 'ventas' | 'vaciados' | 'abonos' | 'saldosIniciales' | 'devoluciones' | 'ajustes';
 
-export const TABLAS: Tabla[] = ['usuarios', 'clientes', 'productos', 'lotes', 'ventas', 'vaciados', 'abonos', 'saldosIniciales', 'devoluciones'];
+export const TABLAS: Tabla[] = ['usuarios', 'clientes', 'productos', 'lotes', 'ventas', 'vaciados', 'abonos', 'saldosIniciales', 'devoluciones', 'ajustes'];
 
 export interface FilaSalida { orden?: number; tabla: Tabla | 'historial'; registro: object }
 export interface Meta { clave: string; valor: unknown }
@@ -21,6 +21,7 @@ export class CuentasDB extends Dexie {
   abonos!: Table<Abono, string>;
   saldosIniciales!: Table<SaldoInicial, string>;
   devoluciones!: Table<Devolucion, string>;
+  ajustes!: Table<Ajuste, string>;
   historial!: Table<Historial, string>;
   salida!: Table<FilaSalida, number>;
   meta!: Table<Meta, string>;
@@ -41,6 +42,7 @@ export class CuentasDB extends Dexie {
       salida: '++orden',
       meta: 'clave',
     });
+    this.version(2).stores({ ajustes: 'id' });
   }
 }
 

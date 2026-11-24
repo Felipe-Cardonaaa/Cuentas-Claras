@@ -18,6 +18,7 @@ async function base() {
   const pg = new PGlite();
   await pg.exec(AUTH_FALSO);
   await pg.exec(readFileSync('supabase/migrations/0001_inicial.sql', 'utf8'));
+  await pg.exec(readFileSync('supabase/migrations/0002_ajustes.sql', 'utf8'));
   await pg.exec(`grant usage on schema public, auth to authenticated; grant all on all tables in schema public to authenticated;
     grant execute on all functions in schema auth to authenticated;`);
   await pg.exec(`insert into cuentas_negocio (uid) values ('${NEGOCIO}')`);
@@ -60,4 +61,15 @@ it('el servidor marca recibido_en y no deja dos clientes con el mismo nombre', a
   expect(r.rows[0].recibido_en).toBeTruthy();
   await expect(pg.exec(`insert into clientes (id, nombre, nombre_normalizado, creado_por, creado_en, actualizado_en)
     values ('44444444-4444-4444-4444-444444444444', 'Marta', 'marta', 'u2', now(), now())`)).rejects.toThrow(/duplicate key/);
+});
+
+
+it('0002: la tabla de ajustes guarda la clave del cierre solo para el negocio', async () => {
+  const pg = await base();
+  await como(pg, NEGOCIO);
+  await pg.exec(`insert into ajustes (id, valor, creado_por, creado_en, actualizado_en)
+    values ('00000000-0000-4000-8000-000000000001', '{"hash":"x","sal":"y"}', 'u1', now(), now())`);
+  expect((await pg.query('select * from ajustes')).rows).toHaveLength(1);
+  await como(pg, EXTRANO);
+  expect((await pg.query('select * from ajustes')).rows).toHaveLength(0);
 });
