@@ -53,4 +53,5 @@ Sin estos pasos la app funciona, pero cada celular guarda sus datos por separado
 
 Netlify publica la app sola cada vez que hay un cambio en la rama `main` (configuración en `netlify.toml`).
 En el plan gratis de Netlify con repositorio privado, los commits deben ir firmados por la cuenta de GitHub del dueño
-(`Felipe-Cardonaaa`); si no, Netlify los bloquea con "Unrecognized Git contributor".
+(`Felipe-Cardonaaa`) con el mismo correo de la cuenta de Netlify; si no, Netlify los bloquea con
+"Unrecognized Git contributor".
