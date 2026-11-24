@@ -11,6 +11,10 @@
   # NUNCA pongas aquí la secret key ni la service_role.
   VITE_SUPABASE_URL = "https://haiswimhupjgsitxmtup.supabase.co"
   VITE_SUPABASE_ANON_KEY = "sb_publishable_cIDQT4G2DQxbiZMDmb-VVA_0qVHiSPC"
+  # La revisión de secretos de Netlify frena la publicación si encuentra estas claves en la app.
+  # Están a propósito (son públicas), así que se le dice que no las cuente como secretos.
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
+  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "sb_publishable_cIDQT4G2DQxbiZMDmb-VVA_0qVHiSPC,haiswimhupjgsitxmtup.supabase.co"
 
 # Que los celulares revisen siempre si hay versión nueva.
 [[headers]]
