@@ -101,3 +101,9 @@ it('las devoluciones de canastillas no llevan signo menos', async () => {
   expect(lista.textContent).not.toMatch(/[−-]\s?2/);
   expect(within(lista).getByText('2 canast.')).toBeInTheDocument();
 });
+
+it('ya no muestra "Vendido de contado" al final', async () => {
+  render(<Cierre usuario={{ id: 'u1', nombre: 'Carlos' } as never} />);
+  await screen.findByLabelText('Quedó fiado');
+  expect(screen.queryByText(/Vendido de contado/)).not.toBeInTheDocument();
+});

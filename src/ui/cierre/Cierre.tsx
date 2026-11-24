@@ -207,12 +207,6 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
         )}
       </section>
 
-      <section className="tarjeta" aria-label="Vendido de contado">
-        <div className="linea-arriba">
-          <span>Vendido de contado <span className="suave">(canastillas enteras)</span></span>
-          <span className="negrita">{formatoCOP(c.contado)}</span>
-        </div>
-      </section>
     </div>
   );
 }
