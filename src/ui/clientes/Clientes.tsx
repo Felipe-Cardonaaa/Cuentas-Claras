@@ -148,7 +148,7 @@ export default function Clientes({ usuario, anotarCon }: Props) {
                               </span>
                               {l.tipo === 'prestamo'
                                 ? (l.pendiente > 0 ? <span className="texto-deuda">Debe {l.pendiente}</span> : <span className="texto-pagado">Devueltas</span>)
-                                : <span className="texto-pagado">−{l.cantidad}</span>}
+                                : <span className="texto-pagado">{l.cantidad} canast.</span>}
                             </span>
                             <span className="linea-abajo">
                               <span>{fechaBogota(l.fecha).slice(5)} · {horaBogota(l.fecha)} · anotó {nombres[l.creadoPor] ?? '—'}</span>

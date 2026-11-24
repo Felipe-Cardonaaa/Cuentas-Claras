@@ -10,6 +10,10 @@ export interface Cierre {
   totalFiado: number;
   /** Lo que sigue debiéndose de los fiados del día. */
   totalPendiente: number;
+  /** De lo vendido en el día: lo que todavía se debe. */
+  quedoFiado: number;
+  /** De lo vendido en el día: lo que ya está pagado (de contado o fiados ya cubiertos). */
+  quedoPago: number;
   /** Abonos del día por cliente, de mayor a menor. */
   pagaron: { clienteId: string; valor: number }[];
   /** Lo que cada cliente quedó debiendo de los fiados del día, de mayor a menor. */
@@ -84,8 +88,13 @@ export function resumenDia(fecha: string, datos: Datos): Cierre {
     .filter(([, pendiente]) => pendiente > 0)
     .map(([clienteId, pendiente]) => ({ clienteId, pendiente }));
 
+  const vendido = ventas.reduce((s, v) => s + Math.round(v.cantidad * v.precioUnitario), 0);
+  const quedoFiado = fiados.reduce((s, f) => s + f.pendiente, 0);
+
   return {
     fecha,
+    quedoFiado,
+    quedoPago: vendido - quedoFiado,
     pagaron,
     deben,
     fiados,

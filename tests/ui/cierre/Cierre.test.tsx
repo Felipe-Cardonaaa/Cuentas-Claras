@@ -26,9 +26,10 @@ beforeEach(async () => {
 it('resume el día', async () => {
   render(<Cierre />);
   // Marta fió 90.000 y abonó 100.000 (cubre su fiado); Pedro fió 32.000 y no ha pagado.
-  expect(await screen.findByText('Quedó debiendo hoy')).toBeInTheDocument();
-  expect(screen.getByLabelText('Quedó debiendo hoy')).toHaveTextContent('$32.000');
-  expect(screen.getAllByText('$100.000').length).toBeGreaterThan(0);
+  // Vendido hoy: 90.000 (Marta, ya pagado) + 32.000 (Pedro, debe) + 43 × 45.000 de contado.
+  expect(await screen.findByLabelText('Quedó fiado')).toHaveTextContent('$32.000');
+  expect(screen.getByLabelText('Quedó pago')).toHaveTextContent('$2.025.000');
+  expect(screen.queryByText(/fiados hoy/)).not.toBeInTheDocument();
   const fila = screen.getByRole('row', { name: /mango criollo/ });
   expect(within(fila).getAllByRole('cell').map((c) => c.textContent)).toEqual(['mango criollo', '50', '45', '0', '5']);
 });
@@ -90,4 +91,13 @@ it('las devoluciones de canastillas del día aparecen aparte y se pueden corregi
   const lista = await screen.findByLabelText('Devoluciones de canastillas');
   await userEvent.click(within(lista).getByRole('button', { name: /Doña Marta · 2 canastillas/ }));
   expect(await screen.findByLabelText('Cantidad')).toHaveValue('2');
+});
+
+it('las devoluciones de canastillas no llevan signo menos', async () => {
+  const m = (await db.clientes.toArray()).find((c) => c.nombre === 'Doña Marta')!;
+  await crear('devoluciones', { clienteId: m.id, cantidad: 2 } as never, 'u1');
+  render(<Cierre usuario={{ id: 'u1', nombre: 'Carlos' } as never} />);
+  const lista = await screen.findByLabelText('Devoluciones de canastillas');
+  expect(lista.textContent).not.toMatch(/[−-]\s?2/);
+  expect(within(lista).getByText('2 canast.')).toBeInTheDocument();
 });

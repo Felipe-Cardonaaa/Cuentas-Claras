@@ -64,10 +64,8 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
       <input id="fecha-cierre" type="date" value={fecha} onChange={(e) => e.target.value && setFecha(e.target.value)} />
 
       <div className="resumen">
-        <div className="cifra deuda" aria-label="Quedó debiendo hoy"><span>Quedó debiendo hoy</span><span>{formatoCOP(c.totalPendiente)}</span>
-          {c.totalFiado !== c.totalPendiente && <span className="suave" style={{ fontSize: 13, fontWeight: 400 }}>de {formatoCOP(c.totalFiado)} fiados hoy</span>}
-        </div>
-        <div className="cifra pagado"><span>Abonos hoy</span><span>{formatoCOP(c.abonos)}</span></div>
+        <div className="cifra deuda" aria-label="Quedó fiado"><span>Quedó fiado</span><span>{formatoCOP(c.quedoFiado)}</span></div>
+        <div className="cifra pagado" aria-label="Quedó pago"><span>Quedó pago</span><span>{formatoCOP(c.quedoPago)}</span></div>
       </div>
 
       <section className="tarjeta" aria-label="Pagaron hoy">
@@ -198,7 +196,7 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
                   <button type="button" className="linea-boton" disabled={!usuario} onClick={() => setDevolucionAbierta(d)}>
                     <span className="linea-arriba">
                       <span>{nombreCliente(d.clienteId)} · {d.cantidad} {d.cantidad === 1 ? 'canastilla' : 'canastillas'}</span>
-                      <span className="texto-pagado">−{d.cantidad} canast.</span>
+                      <span className="texto-pagado">{d.cantidad} canast.</span>
                     </span>
                     <span className="linea-abajo"><span>{horaBogota(d.creadoEn)} · anotó {nombres[d.creadoPor] ?? '—'}</span></span>
                   </button>

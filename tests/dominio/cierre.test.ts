@@ -83,3 +83,18 @@ it('listas de quién pagó hoy y quién quedó debiendo, por cliente', () => {
   expect(c.pagaron).toEqual([{ clienteId: 'o', valor: 180000 }, { clienteId: 'g', valor: 40000 }, { clienteId: 'l', valor: 20000 }]);
   expect(c.deben).toEqual([{ clienteId: 'g', pendiente: 200000 }]);
 });
+
+it('quedó fiado y quedó pago de lo vendido en el día', () => {
+  const d = datosVacios();
+  d.clientes.push(cliente('o', 'Orlando', 'orlando'), cliente('g', 'Gonzalo', 'gonzalo'));
+  d.productos.push(producto('cri', 'criollo'));
+  d.ventas.push(
+    venta({ clienteId: 'o', productoId: 'cri', cantidad: 2, precioUnitario: 120000, estado: 'debe', creadoEn: '2026-11-17T14:00:00Z' }),
+    venta({ clienteId: 'g', productoId: 'cri', cantidad: 3, precioUnitario: 50000, estado: 'debe', creadoEn: '2026-11-17T14:10:00Z' }),
+    venta({ productoId: 'cri', cantidad: 5, precioUnitario: 85000, estado: 'pago', creadoEn: '2026-11-17T14:20:00Z' }),
+  );
+  d.abonos.push(abono('o', 240000, '2026-11-17T16:00:00Z'));
+  const c = resumenDia('2026-11-17', d);
+  expect(c.quedoFiado).toBe(150000);
+  expect(c.quedoPago).toBe(425000 + 240000);
+});
