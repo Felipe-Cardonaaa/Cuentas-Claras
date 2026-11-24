@@ -48,3 +48,9 @@ Sin estos pasos la app funciona, pero cada celular guarda sus datos por separado
    - **Android (Chrome):** menú ⋮ → **Agregar a pantalla de inicio**.
    - **iPhone (Safari):** botón Compartir → **Agregar a inicio**.
 8. **Primera vez en cada celular:** entra con el correo y la clave del negocio. En el primer celular, cada persona crea su usuario con su PIN de 4 números; en los demás celulares los usuarios aparecen solos, solo hay que tocar el nombre y poner el PIN.
+
+## Publicación automática
+
+Netlify publica la app sola cada vez que hay un cambio en la rama `main` (configuración en `netlify.toml`).
+En el plan gratis de Netlify con repositorio privado, los commits deben ir firmados por la cuenta de GitHub del dueño
+(`Felipe-Cardonaaa`); si no, Netlify los bloquea con "Unrecognized Git contributor".
