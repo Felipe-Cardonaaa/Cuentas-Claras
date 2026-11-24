@@ -16,6 +16,14 @@ function constructorVoz(): Constructor | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
+const MENSAJES: Record<string, string> = {
+  'not-allowed': 'El celular no dio permiso al micrófono. En Ajustes → Safari → Micrófono elige "Permitir", o usa el micrófono del teclado.',
+  'service-not-allowed': 'El dictado está apagado. Actívalo en Ajustes → General → Teclado → Activar dictado, o usa el micrófono del teclado.',
+  network: 'Sin señal no se puede dictar aquí. Usa el micrófono del teclado o escribe la venta.',
+  'no-speech': 'No te escuché. Toca el micrófono y habla cerca del celular.',
+  'audio-capture': 'No encontré el micrófono. Usa el micrófono del teclado o escribe la venta.',
+};
+
 export function useDictado() {
   const disponible = constructorVoz() !== null;
   const [escuchando, setEscuchando] = useState(false);
@@ -33,7 +41,11 @@ export function useDictado() {
       const partes = Array.from(e.results).map((x) => x[0].transcript);
       setTexto(partes.join(' ').trim());
     };
-    r.onerror = (e) => setError(e.error === 'network' ? 'Sin señal: escribe la venta' : 'No te escuché bien, intenta otra vez');
+    r.onerror = (e) => {
+      if (e.error === 'aborted') return;
+      setError(MENSAJES[e.error] ?? 'El micrófono no funcionó. Usa el micrófono del teclado o escribe la venta.');
+      setEscuchando(false);
+    };
     r.onend = () => setEscuchando(false);
     actual.current = r;
     setError(null);

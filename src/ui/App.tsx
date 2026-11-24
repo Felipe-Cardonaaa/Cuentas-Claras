@@ -25,11 +25,22 @@ function useEnLinea(): boolean {
   return enLinea;
 }
 
+/** Fecha del encabezado que cambia sola a medianoche aunque la app quede abierta. */
+function useFechaLarga(): string {
+  const [texto, setTexto] = useState(fechaLarga);
+  useEffect(() => {
+    const id = window.setInterval(() => setTexto(fechaLarga()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+  return texto;
+}
+
 export default function App() {
   const [usuario, setUsuario] = useState<Usuario | null>(() => usuarioActivo());
   const [pantalla, setPantalla] = useState<Pantalla>('anotar');
   const [frase, setFrase] = useState('');
   const enLinea = useEnLinea();
+  const fecha = useFechaLarga();
 
   if (!usuario) return <Acceso alEntrar={setUsuario} />;
 
@@ -39,7 +50,7 @@ export default function App() {
     <div className="app">
       <header className="encabezado">
         <div>
-          <span className="suave">{fechaLarga()}</span>
+          <span className="suave">{fecha}</span>
           <h1 className="titulo">Hola, {usuario.nombre}</h1>
         </div>
         <div className="encabezado-der">

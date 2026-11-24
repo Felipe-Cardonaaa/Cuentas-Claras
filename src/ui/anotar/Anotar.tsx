@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Usuario } from '../../dominio/tipos';
 import { parsearFrase } from '../../dominio/parser';
 import { prepararBorrador, type Borrador, type Elecciones } from '../../dominio/borrador';
@@ -17,6 +17,9 @@ export default function Anotar({ usuario, fraseInicial = '' }: { usuario: Usuari
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
   const voz = useDictado();
+  const caja = useRef<HTMLTextAreaElement>(null);
+  // Si el micrófono de la app falla, se abre el teclado para dictar con el micrófono del teclado.
+  useEffect(() => { if (voz.error) caja.current?.focus(); }, [voz.error]);
 
   useEffect(() => setFrase(fraseInicial), [fraseInicial]);
 
@@ -57,7 +60,7 @@ export default function Anotar({ usuario, fraseInicial = '' }: { usuario: Usuari
   return (
     <div className="contenido">
       <label htmlFor="frase" className="negrita etiqueta-grande">¿Qué vendiste?</label>
-      <textarea id="frase" rows={3} value={frase} onChange={(e) => { setFrase(e.target.value); setMensaje(null); }}
+      <textarea id="frase" ref={caja} rows={3} value={frase} onChange={(e) => { setFrase(e.target.value); setMensaje(null); }}
         placeholder="Marta compró 2 canastillas de mango criollo a 45.000 debe" />
       <div className="microfono">
         {voz.disponible ? (
