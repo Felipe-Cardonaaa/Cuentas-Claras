@@ -51,6 +51,9 @@ Sin estos pasos la app funciona, pero cada celular guarda sus datos por separado
 
 ## Publicación automática
 
+El repositorio es **público** para que Netlify (plan gratis) publique cualquier cambio sin bloquearlo.
+Los datos del negocio no están en el repo: viven en Supabase, protegidos por la cuenta del negocio.
+
 Netlify publica la app sola cada vez que hay un cambio en la rama `main` (configuración en `netlify.toml`).
 En el plan gratis de Netlify con repositorio privado, Netlify solo construye los commits de autores que reconoce
 como miembros del equipo; si no, los bloquea con "Unrecognized Git contributor".
