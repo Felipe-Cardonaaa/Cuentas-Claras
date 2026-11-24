@@ -52,6 +52,16 @@ Sin estos pasos la app funciona, pero cada celular guarda sus datos por separado
 ## Publicación automática
 
 Netlify publica la app sola cada vez que hay un cambio en la rama `main` (configuración en `netlify.toml`).
-En el plan gratis de Netlify con repositorio privado, los commits deben ir firmados por la cuenta de GitHub del dueño
-(`Felipe-Cardonaaa`) con el mismo correo de la cuenta de Netlify; si no, Netlify los bloquea con
-"Unrecognized Git contributor".
+En el plan gratis de Netlify con repositorio privado, Netlify solo construye los commits de autores que reconoce
+como miembros del equipo; si no, los bloquea con "Unrecognized Git contributor".
+
+Netlify no compara correos: reconoce al autor por su **cuenta de GitHub**. Para que funcione:
+
+1. La cuenta de GitHub `Felipe-Cardonaaa` debe estar conectada al usuario de Netlify
+   (en Netlify: configuración del usuario → cuentas conectadas → GitHub).
+2. GitHub debe poder asignar el commit a esa cuenta: el correo del autor tiene que estar verificado en GitHub
+   (sirve el correo `...@users.noreply.github.com` de la cuenta o cualquier correo verificado en ella).
+3. Evitar coautores que no sean del equipo (por ejemplo la línea `Co-Authored-By:` de un asistente de IA).
+
+Después de conectar GitHub, se vuelve a lanzar el último deploy fallido desde la lista de deploys de Netlify
+(**Retry deploy**) o se sube un commit nuevo.
