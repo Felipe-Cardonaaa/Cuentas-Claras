@@ -173,3 +173,22 @@ it('"abonó 2 canastillas" es devolución de canastillas, no plata', () => {
   expect(parsearFrase('Marta abonó 2 canastillas')).toEqual(ok({ tipo: 'devolucion', cliente: 'Marta', cantidad: 2 }));
   expect(parsearFrase('Marta abono dos canastas')).toEqual(ok({ tipo: 'devolucion', cliente: 'Marta', cantidad: 2 }));
 });
+
+describe('precios como los escribe el dictado', () => {
+  it.each([
+    ['Orlando compró 3 de criollo a 60.000 debe', 60000],
+    ['Orlando compró 3 de criollo a 60,000 debe', 60000],
+    ['Orlando compró 3 de criollo a $60,000, debe.', 60000],
+    ['Orlando compró 3 de criollo a $60.000 pesos debe', 60000],
+    ['Orlando compró 3 de criollo en 60,000 pesos, debe', 60000],
+    ['Orlando compró 3 de criollo a 1,200,000 debe', 1200000],
+    ['Orlando compró 3 de criollo a 1.200.000 debe', 1200000],
+    ['Orlando compró 3 de criollo a 60.000,00 debe', 60000],
+    ['Orlando compró 3 de criollo a 60,000.00 debe', 60000],
+  ])('%s', (frase, precio) => {
+    expect(parsearFrase(frase)).toMatchObject({ ok: true, intencion: { items: [{ cantidad: 3, precioUnitario: precio }], estado: 'debe' } });
+  });
+  it('abono con coma de miles', () => {
+    expect(parsearFrase('Orlando abonó 60,000')).toEqual(ok({ tipo: 'abono', cliente: 'Orlando', valor: 60000 }));
+  });
+});

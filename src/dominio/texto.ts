@@ -52,7 +52,9 @@ function leerPrecio(s: string): number | null {
     .replace(/\s+pesos?$/, '')
     .replace(/(\d)\s*(mil|k)\b/g, '$1 $2')
     .replace(/\bk$/, 'mil')
-    .trim();
+    .trim()
+    // Centavos en cero que agrega el dictado: "60.000,00" o "60,000.00".
+    .replace(/^(\d{1,3}(?:[.,]\d{3})+|\d{4,})[.,]00$/, '$1');
   if (/^\d{1,3}([.,]\d{3})+$/.test(t)) return Number(t.replace(/[.,]/g, ''));
   if (/^\d+$/.test(t)) return Number(t);
   const m = t.match(/^(.*?)\s*\bmil\b\s*(.*)$/);
