@@ -34,14 +34,14 @@ it('buscar el nombre muestra si debe, cuánto y de dónde sale', async () => {
 it('corregir la cantidad desde el historial cambia el saldo', async () => {
   render(<Clientes usuario={usuario} anotarCon={() => {}} />);
   await userEvent.type(screen.getByLabelText('Buscar por nombre'), 'marta');
-  await userEvent.click(await screen.findByRole('button', { name: /2 canast\. mango criollo/ }));
+  await userEvent.click((await screen.findAllByRole('button', { name: /2 canast\. mango criollo/ }))[0]);
   const cantidad = await screen.findByLabelText('Cantidad');
   await userEvent.clear(cantidad);
   await userEvent.type(cantidad, '3');
   await userEvent.click(screen.getByRole('button', { name: 'Guardar corrección' }));
   const resumen = await screen.findByLabelText('Resumen del cliente');
   expect(await within(resumen).findByText('$95.000')).toBeInTheDocument();
-  await userEvent.click(await screen.findByRole('button', { name: /3 canast\. mango criollo/ }));
+  await userEvent.click((await screen.findAllByRole('button', { name: /3 canast\. mango criollo/ }))[0]);
   expect(await screen.findByText('Carlos cambió cantidad: 2 → 3')).toBeInTheDocument();
 });
 
@@ -62,7 +62,7 @@ it('¿Quién me debe?: lista con total, orden y acceso al cliente', async () => 
   }, 'u1');
   render(<Clientes usuario={usuario} anotarCon={() => {}} />);
   const lista = await screen.findByLabelText('¿Quién me debe?');
-  expect(within(lista).getByText('Total que les deben: $130.000')).toBeInTheDocument();
+  expect(within(lista).getByText('Total que les deben: $130.000 y 2 canastillas')).toBeInTheDocument();
   const nombres = within(lista).getAllByRole('button', { name: /\$/ }).map((b) => b.textContent);
   expect(nombres[0]).toMatch(/Luz.*\$80\.000/);
   expect(nombres[1]).toMatch(/Doña Marta.*\$50\.000/);
@@ -70,4 +70,18 @@ it('¿Quién me debe?: lista con total, orden y acceso al cliente', async () => 
   expect(within(lista).getAllByRole('button', { name: /\$/ })[0].textContent).toMatch(/Doña Marta/);
   await userEvent.click(within(lista).getAllByRole('button', { name: /Luz/ })[0]);
   expect(await screen.findByLabelText('Resumen del cliente')).toHaveTextContent('Luz');
+});
+
+it('fiado de canastillas: separado de la plata y no se borra al pagar', async () => {
+  const m = (await db.clientes.toArray())[0];
+  await crear<Abono>('abonos', { clienteId: m.id, valor: 50000 }, 'u1'); // salda la plata
+  render(<Clientes usuario={usuario} anotarCon={() => {}} />);
+  await userEvent.type(screen.getByLabelText('Buscar por nombre'), 'marta');
+  const resumen = await screen.findByLabelText('Resumen del cliente');
+  expect(resumen).toHaveTextContent('DEBE: NO');
+  const canastas = screen.getByLabelText('Canastillas que debe');
+  expect(within(canastas).getByText(/2 canast\. mango criollo/)).toBeInTheDocument();
+  expect(within(canastas).getByText('Debe 2')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Abono de plata' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Abono de canastillas' })).toBeInTheDocument();
 });

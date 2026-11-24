@@ -83,11 +83,25 @@ describe('deudores', () => {
   }
   it('solo los que deben, de mayor a menor deuda, con la fecha de la deuda pendiente más vieja', () => {
     expect(deudores(tres(), 'monto')).toEqual([
-      { clienteId: 'b', nombre: 'Beto', saldo: 90000, desde: '2026-11-17T14:00:00Z' },
-      { clienteId: 'a', nombre: 'Ana', saldo: 20000, desde: '2026-11-15T14:00:00Z' },
+      { clienteId: 'b', nombre: 'Beto', saldo: 90000, canastillas: 0, desde: '2026-11-17T14:00:00Z' },
+      { clienteId: 'a', nombre: 'Ana', saldo: 20000, canastillas: 0, desde: '2026-11-15T14:00:00Z' },
     ]);
   });
   it('ordenados por la deuda más vieja', () => {
     expect(deudores(tres(), 'antiguedad').map((x) => x.nombre)).toEqual(['Ana', 'Beto']);
   });
+});
+
+it('¿Quién me debe? incluye a quien solo debe canastillas', () => {
+  const d = datosVacios();
+  d.clientes.push(cliente('g', 'Gonzalo', 'gonzalo'), cliente('m', 'Marta', 'marta'));
+  d.ventas.push(
+    venta({ clienteId: 'g', productoId: 'p', cantidad: 3, precioUnitario: 60000, estado: 'debe', prestada: true, creadoEn: '2026-11-15T14:00:00Z' }),
+    venta({ clienteId: 'm', productoId: 'p', cantidad: 1, precioUnitario: 50000, estado: 'debe', prestada: false, creadoEn: '2026-11-16T14:00:00Z' }),
+  );
+  d.abonos.push(abono('g', 180000, '2026-11-15T20:00:00Z'));
+  expect(deudores(d, 'monto')).toEqual([
+    { clienteId: 'm', nombre: 'Marta', saldo: 50000, canastillas: 0, desde: '2026-11-16T14:00:00Z' },
+    { clienteId: 'g', nombre: 'Gonzalo', saldo: 0, canastillas: 3, desde: '2026-11-15T14:00:00Z' },
+  ]);
 });

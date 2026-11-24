@@ -168,3 +168,8 @@ describe('unidad opcional', () => {
     expect(parsearFrase('Gonzalo compro 3 kilos de criollo a 4 mil debe')).toMatchObject({ ok: true, intencion: { items: [{ unidad: 'kilo' }] } });
   });
 });
+
+it('"abonó 2 canastillas" es devolución de canastillas, no plata', () => {
+  expect(parsearFrase('Marta abonó 2 canastillas')).toEqual(ok({ tipo: 'devolucion', cliente: 'Marta', cantidad: 2 }));
+  expect(parsearFrase('Marta abono dos canastas')).toEqual(ok({ tipo: 'devolucion', cliente: 'Marta', cantidad: 2 }));
+});

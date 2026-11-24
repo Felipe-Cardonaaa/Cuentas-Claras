@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { describirVenta, resumenDia } from '../../dominio/cierre';
-import type { Abono, Usuario, Venta } from '../../dominio/tipos';
+import type { Abono, Devolucion, Usuario, Venta } from '../../dominio/tipos';
 import Historial from '../comun/Historial';
 import { fechaBogota, formatoCOP } from '../../dominio/texto';
 import { useDatos, useNombresUsuarios } from '../useDatos';
@@ -12,11 +12,20 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
   const [fecha, setFecha] = useState(() => fechaBogota(new Date().toISOString()));
   const [abierta, setAbierta] = useState<Venta | null>(null);
   const [abonoAbierto, setAbonoAbierto] = useState<Abono | null>(null);
+  const [devolucionAbierta, setDevolucionAbierta] = useState<Devolucion | null>(null);
   if (!datos) return null;
   const nombreProducto = (id: string) => datos.productos.find((p) => p.id === id)?.nombre ?? '';
   const tituloVenta = (v: Venta) =>
     `${v.clienteId ? (datos.clientes.find((x) => x.id === v.clienteId)?.nombre ?? '—') : 'Cliente de paso'} · ${describirVenta(v, nombreProducto(v.productoId))}`;
   const nombreCliente = (id: string) => datos.clientes.find((x) => x.id === id)?.nombre ?? '—';
+  if (devolucionAbierta && usuario) {
+    return (
+      <div className="contenido">
+        <Historial tabla="devoluciones" registro={devolucionAbierta as never} titulo={`Devolvió ${devolucionAbierta.cantidad} canastillas · ${nombreCliente(devolucionAbierta.clienteId)}`}
+          usuario={usuario} nombres={nombres} alCerrar={() => setDevolucionAbierta(null)} />
+      </div>
+    );
+  }
   if (abonoAbierto && usuario) {
     return (
       <div className="contenido">
@@ -33,6 +42,7 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
   }
   const ventasDelDia = datos.ventas.filter((v) => !v.borrado && fechaBogota(v.creadoEn) === fecha);
   const abonosDelDia = datos.abonos.filter((a) => !a.borrado && fechaBogota(a.creadoEn) === fecha);
+  const devolucionesDelDia = datos.devoluciones.filter((d) => !d.borrado && fechaBogota(d.creadoEn) === fecha);
   const c = resumenDia(fecha, datos);
   const cliente = (id: string) => datos.clientes.find((x) => x.id === id)?.nombre ?? '—';
 
@@ -122,7 +132,7 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
       <section className="tarjeta" aria-label="Ventas y abonos del día">
         <span className="negrita">Ventas y abonos del día</span>
         <span className="suave" style={{ fontSize: 14 }}>Toca una línea para corregirla o borrarla.</span>
-        {ventasDelDia.length + abonosDelDia.length === 0 ? <span className="suave">No hay nada anotado.</span> : (
+        {ventasDelDia.length + abonosDelDia.length + devolucionesDelDia.length === 0 ? <span className="suave">No hay nada anotado.</span> : (
           <ul className="lista">
             {ventasDelDia.map((v) => (
               <li key={v.id}>
@@ -135,6 +145,17 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
                     <span>{horaBogota(v.creadoEn)} · anotó {nombres[v.creadoPor] ?? '—'}</span>
                     <span className={v.estado === 'debe' ? 'texto-deuda' : 'texto-pagado'}>{v.estado === 'debe' ? 'Fiado' : 'Pagó'}</span>
                   </span>
+                </button>
+              </li>
+            ))}
+            {devolucionesDelDia.map((d) => (
+              <li key={d.id}>
+                <button type="button" className="linea-boton" disabled={!usuario} onClick={() => setDevolucionAbierta(d)}>
+                  <span className="linea-arriba">
+                    <span>Devolvió {d.cantidad} {d.cantidad === 1 ? 'canastilla' : 'canastillas'} · {nombreCliente(d.clienteId)}</span>
+                    <span className="texto-pagado">−{d.cantidad} canast.</span>
+                  </span>
+                  <span className="linea-abajo"><span>{horaBogota(d.creadoEn)} · anotó {nombres[d.creadoPor] ?? '—'}</span></span>
                 </button>
               </li>
             ))}

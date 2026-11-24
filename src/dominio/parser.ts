@@ -53,6 +53,11 @@ export function parsearFrase(texto: string): ResultadoFrase {
 
   if ((m = t.match(/^(.+?) pag[oó] todo$/i))) return bien({ tipo: 'pagoTotal', cliente: nombrePropio(m[1]) });
 
+  if ((m = t.match(/^(.+?) abon[oó] (.+?) canast(?:illa|a)s?$/i))) {
+    const cantidad = leerCantidad(m[2], 'canastilla');
+    return typeof cantidad === 'string' ? fallo(cantidad) : bien({ tipo: 'devolucion', cliente: nombrePropio(m[1]), cantidad });
+  }
+
   if ((m = t.match(/^(.+?) abon[oó] (.+)$/i))) {
     const valor = parsearPrecio(m[2]);
     return valor === null ? fallo(ERROR_PRECIO) : bien({ tipo: 'abono', cliente: nombrePropio(m[1]), valor });

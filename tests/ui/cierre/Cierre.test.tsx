@@ -78,3 +78,12 @@ it('los abonos del día también se pueden abrir y borrar', async () => {
   const despues = await screen.findByLabelText('Ventas y abonos del día');
   await waitFor(() => expect(within(despues).queryByRole('button', { name: /Abono · Doña Marta/ })).not.toBeInTheDocument());
 });
+
+it('las devoluciones de canastillas del día aparecen y se pueden corregir', async () => {
+  const m = (await db.clientes.toArray()).find((c) => c.nombre === 'Doña Marta')!;
+  await crear('devoluciones', { clienteId: m.id, cantidad: 2 } as never, 'u1');
+  render(<Cierre usuario={{ id: 'u1', nombre: 'Carlos' } as never} />);
+  const lista = await screen.findByLabelText('Ventas y abonos del día');
+  await userEvent.click(within(lista).getByRole('button', { name: /Devolvió 2 canastillas · Doña Marta/ }));
+  expect(await screen.findByLabelText('Cantidad')).toHaveValue('2');
+});
