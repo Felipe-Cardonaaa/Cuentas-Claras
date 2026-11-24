@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { describirVenta, resumenDia } from '../../dominio/cierre';
+import { estadoCuenta } from '../../dominio/fiados';
 import type { Abono, Devolucion, Usuario, Venta } from '../../dominio/tipos';
 import Historial from '../comun/Historial';
 import { fechaBogota, formatoCOP } from '../../dominio/texto';
@@ -43,6 +44,16 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
   const ventasDelDia = datos.ventas.filter((v) => !v.borrado && fechaBogota(v.creadoEn) === fecha);
   const abonosDelDia = datos.abonos.filter((a) => !a.borrado && fechaBogota(a.creadoEn) === fecha);
   const devolucionesDelDia = datos.devoluciones.filter((d) => !d.borrado && fechaBogota(d.creadoEn) === fecha);
+  const contadoDelDia = ventasDelDia.filter((v) => v.estado === 'pago');
+  // Fiados del día con lo que falta pagar de cada uno; los ya pagados no se muestran.
+  const pendientePorVenta = new Map<string, number>();
+  for (const clienteId of new Set(ventasDelDia.filter((v) => v.estado === 'debe' && v.clienteId).map((v) => v.clienteId!))) {
+    for (const l of estadoCuenta(clienteId, datos).todas) if (l.tipo === 'venta') pendientePorVenta.set(l.id, l.pendiente);
+  }
+  const fiadosPendientes = ventasDelDia
+    .filter((v) => v.estado === 'debe')
+    .map((venta) => ({ venta, pendiente: pendientePorVenta.get(venta.id) ?? 0 }))
+    .filter((f) => f.pendiente > 0);
   const c = resumenDia(fecha, datos);
   const cliente = (id: string) => datos.clientes.find((x) => x.id === id)?.nombre ?? '—';
 
@@ -83,27 +94,15 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
         {c.deben.length === 0 ? <span className="suave">Nadie quedó debiendo de lo fiado hoy.</span> : (
           <ul className="lista">
             {c.deben.map((d) => (
-              <li key={d.clienteId} className="linea-arriba" style={{ padding: '8px 0' }}>
-                <span>{cliente(d.clienteId)}</span><span className="texto-deuda">{formatoCOP(d.pendiente)}</span>
+              <li key={d.clienteId} className="formulario" style={{ padding: '8px 0', gap: 2 }}>
+                <span className="linea-arriba"><span className="negrita">{cliente(d.clienteId)}</span><span className="texto-deuda">{formatoCOP(d.pendiente)}</span></span>
+                {c.fiados.filter((f) => f.clienteId === d.clienteId && f.pendiente > 0).map((f, k) => (
+                  <span key={k} className="linea-abajo">{f.descripcion} · debe {formatoCOP(f.pendiente)}</span>
+                ))}
               </li>
             ))}
           </ul>
         )}
-      </section>
-
-      <section className="tarjeta" aria-label="Fiados del día">
-        <span className="negrita">Fiados de hoy</span>
-        {c.fiados.length === 0 ? <span className="suave">No hubo fiados.</span> : c.fiados.map((f, i) => (
-          <div key={i} className="formulario" style={{ gap: 2 }}>
-            <div className="linea-arriba">
-              <span>{cliente(f.clienteId)} · {f.descripcion}</span>
-              <span className="negrita">{formatoCOP(f.total)}</span>
-            </div>
-            <div className="linea-abajo" style={{ justifyContent: 'flex-end' }}>
-              {f.pendiente === 0 ? <span className="texto-pagado">Pagado</span> : <span className="texto-deuda">Debe {formatoCOP(f.pendiente)}</span>}
-            </div>
-          </div>
-        ))}
       </section>
 
       <section className="tarjeta" aria-label="Canastillas">
@@ -129,48 +128,84 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
         {c.productos.length === 0 && <p className="suave">Hoy no se movieron canastillas.</p>}
       </section>
 
-      <section className="tarjeta" aria-label="Ventas y abonos del día">
-        <span className="negrita">Ventas y abonos del día</span>
+      <section className="tarjeta" aria-label="Movimientos del día">
+        <span className="negrita">Movimientos del día</span>
         <span className="suave" style={{ fontSize: 14 }}>Toca una línea para corregirla o borrarla.</span>
-        {ventasDelDia.length + abonosDelDia.length + devolucionesDelDia.length === 0 ? <span className="suave">No hay nada anotado.</span> : (
-          <ul className="lista">
-            {ventasDelDia.map((v) => (
-              <li key={v.id}>
-                <button type="button" className="linea-boton" disabled={!usuario} onClick={() => setAbierta(v)}>
-                  <span className="linea-arriba">
-                    <span>{tituloVenta(v)}</span>
-                    <span className="negrita">{formatoCOP(Math.round(v.cantidad * v.precioUnitario))}</span>
-                  </span>
-                  <span className="linea-abajo">
-                    <span>{horaBogota(v.creadoEn)} · anotó {nombres[v.creadoPor] ?? '—'}</span>
-                    <span className={v.estado === 'debe' ? 'texto-deuda' : 'texto-pagado'}>{v.estado === 'debe' ? 'Fiado' : 'Pagó'}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-            {devolucionesDelDia.map((d) => (
-              <li key={d.id}>
-                <button type="button" className="linea-boton" disabled={!usuario} onClick={() => setDevolucionAbierta(d)}>
-                  <span className="linea-arriba">
-                    <span>Devolvió {d.cantidad} {d.cantidad === 1 ? 'canastilla' : 'canastillas'} · {nombreCliente(d.clienteId)}</span>
-                    <span className="texto-pagado">−{d.cantidad} canast.</span>
-                  </span>
-                  <span className="linea-abajo"><span>{horaBogota(d.creadoEn)} · anotó {nombres[d.creadoPor] ?? '—'}</span></span>
-                </button>
-              </li>
-            ))}
-            {abonosDelDia.map((a) => (
-              <li key={a.id}>
-                <button type="button" className="linea-boton" disabled={!usuario} onClick={() => setAbonoAbierto(a)}>
-                  <span className="linea-arriba">
-                    <span>Abono · {nombreCliente(a.clienteId)}</span>
-                    <span className="negrita texto-pagado">{formatoCOP(a.valor)}</span>
-                  </span>
-                  <span className="linea-abajo"><span>{horaBogota(a.creadoEn)} · anotó {nombres[a.creadoPor] ?? '—'}</span></span>
-                </button>
-              </li>
-            ))}
-          </ul>
+        {contadoDelDia.length + fiadosPendientes.length + abonosDelDia.length + devolucionesDelDia.length === 0 && (
+          <span className="suave">No hay nada pendiente ni anotado.</span>
+        )}
+
+        {contadoDelDia.length > 0 && (
+          <section aria-label="Ventas de contado" className="formulario" style={{ gap: 0 }}>
+            <span className="negrita texto-pagado">Ventas de contado</span>
+            <ul className="lista">
+              {contadoDelDia.map((v) => (
+                <li key={v.id}>
+                  <button type="button" className="linea-boton" disabled={!usuario} onClick={() => setAbierta(v)}>
+                    <span className="linea-arriba"><span>{tituloVenta(v)}</span><span className="negrita">{formatoCOP(Math.round(v.cantidad * v.precioUnitario))}</span></span>
+                    <span className="linea-abajo"><span>{horaBogota(v.creadoEn)} · anotó {nombres[v.creadoPor] ?? '—'}</span></span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {fiadosPendientes.length > 0 && (
+          <section aria-label="Fiados pendientes" className="formulario" style={{ gap: 0 }}>
+            <span className="negrita texto-deuda">Fiados pendientes</span>
+            <ul className="lista">
+              {fiadosPendientes.map(({ venta: v, pendiente }) => {
+                const total = Math.round(v.cantidad * v.precioUnitario);
+                return (
+                  <li key={v.id}>
+                    <button type="button" className="linea-boton" disabled={!usuario} onClick={() => setAbierta(v)}>
+                      <span className="linea-arriba"><span>{tituloVenta(v)}</span><span className="texto-deuda">Debe {formatoCOP(pendiente)}</span></span>
+                      <span className="linea-abajo">
+                        <span>{horaBogota(v.creadoEn)} · anotó {nombres[v.creadoPor] ?? '—'}</span>
+                        {pendiente < total && <span>de {formatoCOP(total)}</span>}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        {abonosDelDia.length > 0 && (
+          <section aria-label="Abonos de plata" className="formulario" style={{ gap: 0 }}>
+            <span className="negrita texto-pagado">Abonos de plata</span>
+            <ul className="lista">
+              {abonosDelDia.map((a) => (
+                <li key={a.id}>
+                  <button type="button" className="linea-boton" disabled={!usuario} onClick={() => setAbonoAbierto(a)}>
+                    <span className="linea-arriba"><span>{nombreCliente(a.clienteId)}</span><span className="negrita texto-pagado">{formatoCOP(a.valor)}</span></span>
+                    <span className="linea-abajo"><span>{horaBogota(a.creadoEn)} · anotó {nombres[a.creadoPor] ?? '—'}</span></span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {devolucionesDelDia.length > 0 && (
+          <section aria-label="Devoluciones de canastillas" className="formulario" style={{ gap: 0 }}>
+            <span className="negrita texto-pagado">Devoluciones de canastillas</span>
+            <ul className="lista">
+              {devolucionesDelDia.map((d) => (
+                <li key={d.id}>
+                  <button type="button" className="linea-boton" disabled={!usuario} onClick={() => setDevolucionAbierta(d)}>
+                    <span className="linea-arriba">
+                      <span>{nombreCliente(d.clienteId)} · {d.cantidad} {d.cantidad === 1 ? 'canastilla' : 'canastillas'}</span>
+                      <span className="texto-pagado">−{d.cantidad} canast.</span>
+                    </span>
+                    <span className="linea-abajo"><span>{horaBogota(d.creadoEn)} · anotó {nombres[d.creadoPor] ?? '—'}</span></span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
       </section>
 
