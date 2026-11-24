@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Clientes from '../../../src/ui/clientes/Clientes';
 import { db } from '../../../src/datos/db';
@@ -84,4 +84,15 @@ it('fiado de canastillas: separado de la plata y no se borra al pagar', async ()
   expect(within(canastas).getByText('Debe 2')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Abono de plata' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Abono de canastillas' })).toBeInTheDocument();
+});
+
+it('desactiva el abono de lo que el cliente no debe', async () => {
+  const m = (await db.clientes.toArray())[0];
+  await crear<Abono>('abonos', { clienteId: m.id, valor: 50000 }, 'u1'); // ya no debe plata, sí 2 canastillas
+  render(<Clientes usuario={usuario} anotarCon={() => {}} />);
+  await userEvent.type(screen.getByLabelText('Buscar por nombre'), 'marta');
+  expect(await screen.findByRole('button', { name: 'Abono de plata' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Abono de canastillas' })).toBeEnabled();
+  await crear('devoluciones', { clienteId: m.id, cantidad: 2 } as never, 'u1');
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Abono de canastillas' })).toBeDisabled());
 });

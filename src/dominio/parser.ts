@@ -53,6 +53,11 @@ export function parsearFrase(texto: string): ResultadoFrase {
 
   if ((m = t.match(/^(.+?) pag[oó] todo$/i))) return bien({ tipo: 'pagoTotal', cliente: nombrePropio(m[1]) });
 
+  if ((m = t.match(/^(.+?) abon[oó]$/i))) {
+    const cliente = nombrePropio(m[1]);
+    return fallo(`¿Cuánto abonó ${cliente}? Ejemplo: "${cliente} abonó 40.000" o "${cliente} abonó 2 canastillas"`);
+  }
+
   if ((m = t.match(/^(.+?) abon[oó] (.+?) canast(?:illa|a)s?$/i))) {
     const cantidad = leerCantidad(m[2], 'canastilla');
     return typeof cantidad === 'string' ? fallo(cantidad) : bien({ tipo: 'devolucion', cliente: nombrePropio(m[1]), cantidad });
@@ -68,9 +73,14 @@ export function parsearFrase(texto: string): ResultadoFrase {
     return valor === null ? fallo(ERROR_PRECIO) : bien({ tipo: 'saldoInicial', cliente: nombrePropio(m[1]), valor });
   }
 
-  if ((m = t.match(/^(.+?) devolvi[oó] (.+?) canast(?:illa|a)s?$/i))) {
-    const cantidad = leerCantidad(m[2], 'canastilla');
-    return typeof cantidad === 'string' ? fallo(cantidad) : bien({ tipo: 'devolucion', cliente: nombrePropio(m[1]), cantidad });
+  if ((m = t.match(/^(.+?) devolvi[oó](?: (.*))?$/i))) {
+    const cliente = nombrePropio(m[1]);
+    const ejemplo = `¿Cuántas canastillas devolvió ${cliente}? Ejemplo: "${cliente} devolvió 3 canastillas"`;
+    const resto = (m[2] ?? '').replace(/\s*canast(?:illa|a)s?$/i, '').trim();
+    if (!resto) return fallo(ejemplo);
+    const cantidad = leerCantidad(resto, 'canastilla');
+    if (cantidad === ERROR_CANTIDAD) return fallo(ejemplo);
+    return typeof cantidad === 'string' ? fallo(cantidad) : bien({ tipo: 'devolucion', cliente, cantidad });
   }
 
   if ((m = t.match(new RegExp(`^entr(?:aron|[oó]) (.+?) ${UNIDAD} de (.+?)(?: (a|por) (.+))?$`, 'i')))) {

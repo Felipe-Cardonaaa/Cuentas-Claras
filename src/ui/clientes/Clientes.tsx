@@ -163,8 +163,8 @@ export default function Clientes({ usuario, anotarCon }: Props) {
                   <button type="button" className="enlace" onClick={() => setVerTodo(true)}>Ver todo el historial</button>
                 )}
                 <div className="dos">
-                  <button type="button" className="boton secundario" onClick={() => anotarCon(`${primerNombre} abonó `)}>Abono de plata</button>
-                  <button type="button" className="boton secundario" onClick={() => anotarCon(`${primerNombre} devolvió `)}>Abono de canastillas</button>
+                  <button type="button" className="boton secundario" disabled={!cuenta.debe} onClick={() => anotarCon(`${primerNombre} abonó `)}>Abono de plata</button>
+                  <button type="button" className="boton secundario" disabled={prestadas <= 0} onClick={() => anotarCon(`${primerNombre} devolvió `)}>Abono de canastillas</button>
                 </div>
               </>
             )}

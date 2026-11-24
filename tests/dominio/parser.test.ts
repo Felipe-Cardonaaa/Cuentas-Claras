@@ -192,3 +192,18 @@ describe('precios como los escribe el dictado', () => {
     expect(parsearFrase('Orlando abonó 60,000')).toEqual(ok({ tipo: 'abono', cliente: 'Orlando', valor: 60000 }));
   });
 });
+
+describe('mensajes cuando falta la cantidad', () => {
+  it('devolvió sin cantidad', () => {
+    expect(parsearFrase('Orlando devolvió')).toEqual({ ok: false, error: '¿Cuántas canastillas devolvió Orlando? Ejemplo: "Orlando devolvió 3 canastillas"' });
+  });
+  it('abonó sin valor', () => {
+    expect(parsearFrase('Orlando abonó')).toEqual({ ok: false, error: '¿Cuánto abonó Orlando? Ejemplo: "Orlando abonó 40.000" o "Orlando abonó 2 canastillas"' });
+  });
+  it('devolvió 3 sin decir canastillas = 3 canastillas', () => {
+    expect(parsearFrase('Orlando devolvió 3')).toEqual(ok({ tipo: 'devolucion', cliente: 'Orlando', cantidad: 3 }));
+  });
+  it('devolvió con cantidad ilegible', () => {
+    expect(parsearFrase('Orlando devolvió muchas canastillas')).toEqual({ ok: false, error: '¿Cuántas canastillas devolvió Orlando? Ejemplo: "Orlando devolvió 3 canastillas"' });
+  });
+});
