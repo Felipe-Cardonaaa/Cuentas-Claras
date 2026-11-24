@@ -60,10 +60,21 @@ it('muestra las listas Pagaron hoy y Quedaron debiendo', async () => {
 it('Ventas del día: se puede abrir cualquier venta y borrarla', async () => {
   const usuario = { id: 'u1', nombre: 'Carlos' } as never;
   render(<Cierre usuario={usuario} />);
-  const lista = await screen.findByLabelText('Ventas del día');
+  const lista = await screen.findByLabelText('Ventas y abonos del día');
   await userEvent.click(within(lista).getByRole('button', { name: /Cliente de paso · 43 canast\. mango criollo/ }));
   await userEvent.click(await screen.findByRole('button', { name: 'Borrar' }));
   await userEvent.click(screen.getByRole('button', { name: 'Sí, borrar' }));
-  const despues = await screen.findByLabelText('Ventas del día');
+  const despues = await screen.findByLabelText('Ventas y abonos del día');
   await waitFor(() => expect(within(despues).queryByRole('button', { name: /43 canast/ })).not.toBeInTheDocument());
+});
+
+it('los abonos del día también se pueden abrir y borrar', async () => {
+  const usuario = { id: 'u1', nombre: 'Carlos' } as never;
+  render(<Cierre usuario={usuario} />);
+  const lista = await screen.findByLabelText('Ventas y abonos del día');
+  await userEvent.click(within(lista).getByRole('button', { name: /Abono · Doña Marta/ }));
+  await userEvent.click(await screen.findByRole('button', { name: 'Borrar' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Sí, borrar' }));
+  const despues = await screen.findByLabelText('Ventas y abonos del día');
+  await waitFor(() => expect(within(despues).queryByRole('button', { name: /Abono · Doña Marta/ })).not.toBeInTheDocument());
 });

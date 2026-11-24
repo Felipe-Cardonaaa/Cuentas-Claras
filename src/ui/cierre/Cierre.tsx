@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { describirVenta, resumenDia } from '../../dominio/cierre';
-import type { Usuario, Venta } from '../../dominio/tipos';
+import type { Abono, Usuario, Venta } from '../../dominio/tipos';
 import Historial from '../comun/Historial';
 import { fechaBogota, formatoCOP } from '../../dominio/texto';
 import { useDatos, useNombresUsuarios } from '../useDatos';
@@ -11,10 +11,19 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
   const nombres = useNombresUsuarios();
   const [fecha, setFecha] = useState(() => fechaBogota(new Date().toISOString()));
   const [abierta, setAbierta] = useState<Venta | null>(null);
+  const [abonoAbierto, setAbonoAbierto] = useState<Abono | null>(null);
   if (!datos) return null;
   const nombreProducto = (id: string) => datos.productos.find((p) => p.id === id)?.nombre ?? '';
   const tituloVenta = (v: Venta) =>
     `${v.clienteId ? (datos.clientes.find((x) => x.id === v.clienteId)?.nombre ?? '—') : 'Cliente de paso'} · ${describirVenta(v, nombreProducto(v.productoId))}`;
+  const nombreCliente = (id: string) => datos.clientes.find((x) => x.id === id)?.nombre ?? '—';
+  if (abonoAbierto && usuario) {
+    return (
+      <div className="contenido">
+        <Historial tabla="abonos" registro={abonoAbierto as never} titulo={`Abono · ${nombreCliente(abonoAbierto.clienteId)}`} usuario={usuario} nombres={nombres} alCerrar={() => setAbonoAbierto(null)} />
+      </div>
+    );
+  }
   if (abierta && usuario) {
     return (
       <div className="contenido">
@@ -23,6 +32,7 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
     );
   }
   const ventasDelDia = datos.ventas.filter((v) => !v.borrado && fechaBogota(v.creadoEn) === fecha);
+  const abonosDelDia = datos.abonos.filter((a) => !a.borrado && fechaBogota(a.creadoEn) === fecha);
   const c = resumenDia(fecha, datos);
   const cliente = (id: string) => datos.clientes.find((x) => x.id === id)?.nombre ?? '—';
 
@@ -109,10 +119,10 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
         {c.productos.length === 0 && <p className="suave">Hoy no se movieron canastillas.</p>}
       </section>
 
-      <section className="tarjeta" aria-label="Ventas del día">
-        <span className="negrita">Ventas del día</span>
-        <span className="suave" style={{ fontSize: 14 }}>Toca una venta para corregirla o borrarla.</span>
-        {ventasDelDia.length === 0 ? <span className="suave">No hay ventas anotadas.</span> : (
+      <section className="tarjeta" aria-label="Ventas y abonos del día">
+        <span className="negrita">Ventas y abonos del día</span>
+        <span className="suave" style={{ fontSize: 14 }}>Toca una línea para corregirla o borrarla.</span>
+        {ventasDelDia.length + abonosDelDia.length === 0 ? <span className="suave">No hay nada anotado.</span> : (
           <ul className="lista">
             {ventasDelDia.map((v) => (
               <li key={v.id}>
@@ -125,6 +135,17 @@ export default function Cierre({ usuario }: { usuario?: Usuario }) {
                     <span>{horaBogota(v.creadoEn)} · anotó {nombres[v.creadoPor] ?? '—'}</span>
                     <span className={v.estado === 'debe' ? 'texto-deuda' : 'texto-pagado'}>{v.estado === 'debe' ? 'Fiado' : 'Pagó'}</span>
                   </span>
+                </button>
+              </li>
+            ))}
+            {abonosDelDia.map((a) => (
+              <li key={a.id}>
+                <button type="button" className="linea-boton" disabled={!usuario} onClick={() => setAbonoAbierto(a)}>
+                  <span className="linea-arriba">
+                    <span>Abono · {nombreCliente(a.clienteId)}</span>
+                    <span className="negrita texto-pagado">{formatoCOP(a.valor)}</span>
+                  </span>
+                  <span className="linea-abajo"><span>{horaBogota(a.creadoEn)} · anotó {nombres[a.creadoPor] ?? '—'}</span></span>
                 </button>
               </li>
             ))}
