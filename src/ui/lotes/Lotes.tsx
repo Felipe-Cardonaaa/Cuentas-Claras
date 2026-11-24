@@ -6,6 +6,8 @@ import { editar } from '../../datos/repositorio';
 import { useDatos, useNombresUsuarios } from '../useDatos';
 import Historial from '../comun/Historial';
 import EntradaMercancia from './EntradaMercancia';
+import VaciarCanastillas from './VaciarCanastillas';
+import type { Producto } from '../../dominio/tipos';
 import type { Tabla } from '../../datos/db';
 
 interface Abierto { tabla: Tabla; registro: Record<string, unknown> & { id: string }; titulo: string }
@@ -82,8 +84,10 @@ export default function Lotes({ usuario, anotarCon }: Props) {
   const [abiertos, setAbiertos] = useState<Record<string, boolean>>({});
   const [abierto, setAbierto] = useState<Abierto | null>(null);
   const [entrando, setEntrando] = useState(false);
+  const [vaciando, setVaciando] = useState<Producto | null>(null);
   if (!datos) return null;
   if (entrando) return <EntradaMercancia usuario={usuario} alTerminar={() => setEntrando(false)} />;
+  if (vaciando) return <VaciarCanastillas producto={vaciando} usuario={usuario} alTerminar={() => setVaciando(null)} />;
   if (abierto) {
     return (
       <div className="contenido">
@@ -110,6 +114,10 @@ export default function Lotes({ usuario, anotarCon }: Props) {
               <span className="grande negrita">{p.nombre}</span>
               <span><span className="grande negrita">{quedan}</span> quedan</span>
             </div>
+            <button type="button" className="boton secundario" aria-label={`Vaciar canastillas de ${p.nombre}`} disabled={quedan <= 0}
+              onClick={() => setVaciando(p)}>
+              Vaciar canastillas
+            </button>
             {estados.map((e) => {
               const avance = e.lote.canastillas > 0 ? Math.min(100, Math.max(0, ((e.vendidas + e.vaciadas) / e.lote.canastillas) * 100)) : 0;
               const fecha = etiquetaFecha(e.lote.creadoEn);

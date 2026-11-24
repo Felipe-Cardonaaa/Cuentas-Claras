@@ -96,3 +96,26 @@ describe('formulario Entró mercancía', () => {
     expect(await screen.findByText('Las canastillas se cuentan enteras')).toBeInTheDocument();
   });
 });
+
+describe('botón Vaciar canastillas', () => {
+  it('vacía canastillas de un producto desde Lotes', async () => {
+    render(<Lotes usuario={usuario} anotarCon={() => {}} />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Vaciar canastillas de mango criollo' }));
+    const form = screen.getByRole('form', { name: 'Vaciar canastillas' });
+    await userEvent.type(within(form).getByLabelText('¿Cuántas canastillas se vaciaron?'), '2');
+    await userEvent.click(within(form).getByRole('button', { name: 'Revisar' }));
+    expect(await screen.findByText('¿Guardar las canastillas vaciadas?')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+    expect(await screen.findByText('Vaciadas: 2')).toBeInTheDocument();
+    expect(await db.vaciados.count()).toBe(1);
+  });
+
+  it('no deja vaciar media canastilla', async () => {
+    render(<Lotes usuario={usuario} anotarCon={() => {}} />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Vaciar canastillas de mango criollo' }));
+    const form = screen.getByRole('form', { name: 'Vaciar canastillas' });
+    await userEvent.type(within(form).getByLabelText('¿Cuántas canastillas se vaciaron?'), '1,5');
+    await userEvent.click(within(form).getByRole('button', { name: 'Revisar' }));
+    expect(await screen.findByText('Las canastillas se cuentan enteras')).toBeInTheDocument();
+  });
+});
